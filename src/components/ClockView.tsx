@@ -1,9 +1,10 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useTheme } from './ThemeProvider'
 import { useTime } from '../hooks/useTime'
 import { AnalogClock } from './AnalogClock'
 import { formatTime, formatDate, formatTimeNoSeconds, getTimezoneOffsetLabel, getTimeDelta, ALL_TIMEZONES } from '../utils/time'
 import { WORLD_CITIES } from '../utils/cities'
+import { searchCities, type GeoSearchResult } from '../utils/geocoding'
 import { getGeolocation, getSunTimes, type GeoLocation } from '../utils/geolocation'
 import { PlusIcon, TrashIcon, GlobeIcon, XIcon, SliderIcon, SunIcon, MoonIcon } from './Icons'
 import type { WorldClockZone } from '../types'
@@ -23,6 +24,9 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
   const { textPrimary, textSecondary, textMuted, surface, border, isDark } = useTheme()
   const [showAdd, setShowAdd] = useState(false)
   const [search, setSearch] = useState('')
+  const [apiResults, setApiResults] = useState<GeoSearchResult[]>([])
+  const [apiLoading, setApiLoading] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
   const [showPlanner, setShowPlanner] = useState(false)
   const [sliderOffset, setSliderOffset] = useState(0)
   const [geoLocation, setGeoLocation] = useState<GeoLocation | null>(null)
@@ -62,49 +66,63 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
     }
   }, [geoLocation])
 
+  // Debounced live geocoding search
+  const handleSearch = useCallback((value: string) => {
+    setSearch(value)
+    setApiResults([])
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (value.trim().length < 2) { setApiLoading(false); return }
+
+    debounceRef.current = setTimeout(async () => {
+      setApiLoading(true)
+      const results = await searchCities(value.trim())
+      setApiResults(results)
+      setApiLoading(false)
+    }, 400)
+  }, [])
+
+  // Combine local + API results
   const filteredResults = useMemo(() => {
     const q = search.toLowerCase().trim()
 
-    // Search the cities database first
-    const cityResults = WORLD_CITIES
+    // Local city database — instant
+    const localResults = WORLD_CITIES
       .filter((c) =>
         c.city.toLowerCase().includes(q) ||
-        c.country.toLowerCase().includes(q) ||
-        c.timezone.toLowerCase().includes(q)
+        c.country.toLowerCase().includes(q)
       )
       .filter((c) => !zones.some((z) => z.timezone === c.timezone && z.label === c.city))
       .map((c) => ({
         label: c.city,
         subtitle: c.country,
         timezone: c.timezone,
+        source: 'local' as const,
       }))
 
-    // Also search raw IANA timezones for anything not covered
-    const cityTimezones = new Set(cityResults.map((c) => `${c.label}|${c.timezone}`))
-    const tzResults = ALL_TIMEZONES
-      .filter((tz) =>
-        tz.label.toLowerCase().includes(q) ||
-        tz.timezone.toLowerCase().includes(q) ||
-        tz.region.toLowerCase().includes(q)
-      )
-      .filter((tz) => !zones.some((z) => z.timezone === tz.timezone))
-      .filter((tz) => !cityTimezones.has(`${tz.label}|${tz.timezone}`))
-      .map((tz) => ({
-        label: tz.label,
-        subtitle: tz.region,
-        timezone: tz.timezone,
+    // API results
+    const localKeys = new Set(localResults.map((r) => r.label.toLowerCase()))
+    const remoteResults = apiResults
+      .filter((r) => !localKeys.has(r.city.toLowerCase()))
+      .filter((r) => r.timezone)
+      .map((r) => ({
+        label: r.city,
+        subtitle: r.country,
+        timezone: r.timezone,
+        source: 'api' as const,
       }))
 
-    const combined = [...cityResults, ...tzResults]
+    const combined = [...localResults, ...remoteResults]
 
-    if (!q) return combined.slice(0, 50)
+    if (!q) return localResults.slice(0, 50)
     return combined.slice(0, 100)
-  }, [search, zones])
+  }, [search, zones, apiResults])
 
   const addZone = (label: string, timezone: string) => {
     setZones([...zones, { id: crypto.randomUUID(), label, timezone }])
     setShowAdd(false)
     setSearch('')
+    setApiResults([])
   }
 
   const removeZone = (id: string) => {
@@ -347,14 +365,21 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
                 <XIcon size={20} />
               </button>
             </div>
-            <input
-              type="text"
-              placeholder="Search cities..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              autoFocus
-              className={`w-full px-4 py-3 rounded-xl border ${border} ${isDark ? 'bg-zinc-800 text-white' : 'bg-zinc-50 text-zinc-900'} text-sm mb-3 outline-none focus:ring-2 focus:ring-indigo-500`}
-            />
+            <div className="relative mb-3">
+              <input
+                type="text"
+                placeholder="Search any city worldwide..."
+                value={search}
+                onChange={(e) => handleSearch(e.target.value)}
+                autoFocus
+                className={`w-full px-4 py-3 rounded-xl border ${border} ${isDark ? 'bg-zinc-800 text-white' : 'bg-zinc-50 text-zinc-900'} text-sm outline-none focus:ring-2 focus:ring-indigo-500`}
+              />
+              {apiLoading && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
             <div className="overflow-y-auto max-h-[45vh] space-y-0.5">
               {filteredResults.map((r, i) => (
                 <button
@@ -369,8 +394,11 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
                   <span className={`text-xs shrink-0 ${textMuted}`}>{getTimezoneOffsetLabel(r.timezone)}</span>
                 </button>
               ))}
-              {filteredResults.length === 0 && (
-                <p className={`text-center py-6 text-sm ${textMuted}`}>No cities match "{search}"</p>
+              {filteredResults.length === 0 && !apiLoading && search.trim().length >= 2 && (
+                <p className={`text-center py-6 text-sm ${textMuted}`}>No cities found for "{search}"</p>
+              )}
+              {filteredResults.length === 0 && apiLoading && (
+                <p className={`text-center py-6 text-sm ${textMuted}`}>Searching worldwide...</p>
               )}
             </div>
           </div>
