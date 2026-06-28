@@ -205,7 +205,7 @@ function AppShell({
   }, [view, worldClocks, alarms, timers, stopwatch, use24Hour, ttsEnabled, showAnalog, countdownTarget])
 
   return (
-    <div className="flex h-full w-full" style={bgStyle}>
+    <div className="flex h-full w-full min-h-screen" style={bgStyle}>
       <Navigation
         view={view}
         setView={setView}

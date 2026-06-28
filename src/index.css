@@ -9,16 +9,25 @@
     box-sizing: border-box;
   }
 
-  html, body, #root {
+  html {
     height: 100%;
-    width: 100%;
-    overflow: hidden;
+    background: #000000;
   }
 
   body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background: #000000;
+  }
+
+  #root {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
   }
 
   ::-webkit-scrollbar {
