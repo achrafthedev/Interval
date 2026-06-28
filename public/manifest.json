@@ -1,0 +1,56 @@
+{
+  "name": "Interval — Clock, Alarm, Timer & Stopwatch",
+  "short_name": "Interval",
+  "description": "A premium progressive web app for time management: world clock, alarms, countdown timers, and stopwatch.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#4f46e5",
+  "background_color": "#000000",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Clock",
+      "short_name": "Clock",
+      "url": "/?view=clock",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Alarm",
+      "short_name": "Alarm",
+      "url": "/?view=alarm",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Timer",
+      "short_name": "Timer",
+      "url": "/?view=timer",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Stopwatch",
+      "short_name": "Stopwatch",
+      "url": "/?view=stopwatch",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["utilities", "productivity"]
+}
