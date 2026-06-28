@@ -79,7 +79,13 @@ export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Prop
   const [wakeLockOn, setWakeLockOn] = useState(isWakeLockActive())
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
-  const { canInstall, install } = useInstallPrompt()
+  const [showInstallGuide, setShowInstallGuide] = useState(false)
+  const { canPrompt, isInstalled, install, platform } = useInstallPrompt()
+
+  const handleInstall = async () => {
+    const result = await install()
+    if (result === 'instructions') setShowInstallGuide(true)
+  }
 
   const toggleWakeLock = async () => {
     if (wakeLockOn) { await releaseWakeLock(); setWakeLockOn(false) }
@@ -163,8 +169,8 @@ export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Prop
         </div>
 
         <div className={`px-2 py-3 border-t ${border} space-y-0.5`}>
-          {canInstall && (
-            <button onClick={install} className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 transition-all">
+          {!isInstalled && (
+            <button onClick={handleInstall} className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 transition-all">
               <DownloadIcon size={18} /><span className="hidden lg:inline">Install App</span>
             </button>
           )}
@@ -232,6 +238,80 @@ export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Prop
                 {navButton({ id: 'legal', tKey: 'nav.legalPage', Icon: SettingsIcon }, true)}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Install Instructions Modal */}
+      {showInstallGuide && (
+        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowInstallGuide(false)}>
+          <div
+            className={`w-full sm:max-w-md ${isDark ? 'bg-zinc-900' : 'bg-white'} rounded-t-3xl sm:rounded-2xl p-6 animate-slide-up`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h2 className={`text-lg font-semibold ${textPrimary}`}>Install Interval</h2>
+              <button onClick={() => setShowInstallGuide(false)} className={textMuted}>&times;</button>
+            </div>
+
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-600 flex items-center justify-center">
+              <ClockIcon size={28} className="text-white" />
+            </div>
+
+            <p className={`text-center text-sm ${textSecondary} mb-6`}>
+              Install Interval on your device for a native app experience — works offline, no app store needed.
+            </p>
+
+            {platform === 'ios' ? (
+              <div className={`space-y-3 text-sm ${textPrimary}`}>
+                <div className={`flex items-start gap-3 p-3 rounded-xl ${isDark ? 'bg-white/5' : 'bg-zinc-50'}`}>
+                  <span className="text-lg">1.</span>
+                  <span>Tap the <strong>Share</strong> button <span className="inline-block w-5 h-5 text-center border rounded">&uarr;</span> in Safari's toolbar</span>
+                </div>
+                <div className={`flex items-start gap-3 p-3 rounded-xl ${isDark ? 'bg-white/5' : 'bg-zinc-50'}`}>
+                  <span className="text-lg">2.</span>
+                  <span>Scroll down and tap <strong>"Add to Home Screen"</strong></span>
+                </div>
+                <div className={`flex items-start gap-3 p-3 rounded-xl ${isDark ? 'bg-white/5' : 'bg-zinc-50'}`}>
+                  <span className="text-lg">3.</span>
+                  <span>Tap <strong>"Add"</strong> — Interval will appear on your home screen</span>
+                </div>
+              </div>
+            ) : platform === 'android' ? (
+              <div className={`space-y-3 text-sm ${textPrimary}`}>
+                <div className={`flex items-start gap-3 p-3 rounded-xl ${isDark ? 'bg-white/5' : 'bg-zinc-50'}`}>
+                  <span className="text-lg">1.</span>
+                  <span>Tap the <strong>three-dot menu</strong> &#8942; in your browser</span>
+                </div>
+                <div className={`flex items-start gap-3 p-3 rounded-xl ${isDark ? 'bg-white/5' : 'bg-zinc-50'}`}>
+                  <span className="text-lg">2.</span>
+                  <span>Tap <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong></span>
+                </div>
+                <div className={`flex items-start gap-3 p-3 rounded-xl ${isDark ? 'bg-white/5' : 'bg-zinc-50'}`}>
+                  <span className="text-lg">3.</span>
+                  <span>Tap <strong>"Install"</strong> — Interval will appear in your app drawer</span>
+                </div>
+              </div>
+            ) : (
+              <div className={`space-y-3 text-sm ${textPrimary}`}>
+                <div className={`flex items-start gap-3 p-3 rounded-xl ${isDark ? 'bg-white/5' : 'bg-zinc-50'}`}>
+                  <span className="text-lg">1.</span>
+                  <span>Look for the <strong>install icon</strong> <DownloadIcon size={14} className="inline" /> in your browser's address bar</span>
+                </div>
+                <div className={`flex items-start gap-3 p-3 rounded-xl ${isDark ? 'bg-white/5' : 'bg-zinc-50'}`}>
+                  <span className="text-lg">2.</span>
+                  <span>Or open the <strong>browser menu</strong> and select <strong>"Install Interval"</strong></span>
+                </div>
+                <div className={`flex items-start gap-3 p-3 rounded-xl ${isDark ? 'bg-white/5' : 'bg-zinc-50'}`}>
+                  <span className="text-lg">3.</span>
+                  <span>Interval will open as a standalone window and appear in your taskbar/dock</span>
+                </div>
+              </div>
+            )}
+
+            <p className={`text-center text-xs ${textMuted} mt-5`}>
+              Works on Chrome, Brave, Edge, Safari, and Samsung Internet
+            </p>
           </div>
         </div>
       )}

@@ -10,7 +10,8 @@ export function useInstallPrompt() {
   const [isInstalled, setIsInstalled] = useState(false)
 
   useEffect(() => {
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (window.matchMedia('(display-mode: standalone)').matches ||
+        (navigator as any).standalone === true) {
       setIsInstalled(true)
       return
     }
@@ -29,14 +30,25 @@ export function useInstallPrompt() {
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
-  const install = async () => {
-    if (!deferredPrompt) return false
-    await deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
-    setDeferredPrompt(null)
-    if (outcome === 'accepted') setIsInstalled(true)
-    return outcome === 'accepted'
+  const install = async (): Promise<'prompted' | 'instructions'> => {
+    if (deferredPrompt) {
+      await deferredPrompt.prompt()
+      const { outcome } = await deferredPrompt.userChoice
+      setDeferredPrompt(null)
+      if (outcome === 'accepted') setIsInstalled(true)
+      return 'prompted'
+    }
+    return 'instructions'
   }
 
-  return { canInstall: !!deferredPrompt && !isInstalled, isInstalled, install }
+  const platform = getPlatform()
+
+  return { canPrompt: !!deferredPrompt, isInstalled, install, platform }
+}
+
+function getPlatform(): 'ios' | 'android' | 'desktop' {
+  const ua = navigator.userAgent
+  if (/iPad|iPhone|iPod/.test(ua)) return 'ios'
+  if (/Android/.test(ua)) return 'android'
+  return 'desktop'
 }
