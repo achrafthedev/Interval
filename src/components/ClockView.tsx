@@ -112,7 +112,7 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
   }
 
   return (
-    <div className="flex flex-col items-center justify-start h-full overflow-y-auto px-4 pb-24 md:pb-8 pt-8 md:pt-12">
+    <div className="flex flex-col items-center justify-start min-h-full px-4 pb-24 md:pb-8 pt-8 md:pt-12">
       {/* Analog Clock */}
       {showAnalog && (
         <div className="mb-4 animate-fade-in">

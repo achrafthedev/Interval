@@ -189,7 +189,7 @@ export function TimerView({ timers, setTimers }: Props) {
   }
 
   return (
-    <div className="flex flex-col items-center h-full overflow-y-auto px-4 pb-24 md:pb-8 pt-8 md:pt-12">
+    <div className="flex flex-col items-center min-h-full px-4 pb-24 md:pb-8 pt-8 md:pt-12">
       <div className="w-full max-w-2xl">
         <div className="flex items-center justify-between mb-6">
           <h1 className={`text-2xl font-bold ${textPrimary}`}>Timers</h1>

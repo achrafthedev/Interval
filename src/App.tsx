@@ -6,6 +6,7 @@ import { AlarmView } from './components/AlarmView'
 import { TimerView } from './components/TimerView'
 import { StopwatchView } from './components/StopwatchView'
 import { SettingsPanel } from './components/SettingsPanel'
+import { SeoContent } from './components/SeoContent'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useDocumentTitle } from './hooks/useDocumentTitle'
@@ -175,8 +176,11 @@ function AppShell({
         onSettingsOpen={() => setShowSettings(true)}
         onFullscreen={toggleFullscreen}
       />
-      <main className="flex-1 min-w-0 overflow-hidden">
-        {renderView()}
+      <main className="flex-1 min-w-0 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-y-auto">
+          {renderView()}
+          <SeoContent view={view} />
+        </div>
       </main>
       <SettingsPanel
         show={showSettings}

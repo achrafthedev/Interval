@@ -3,22 +3,166 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Google Search Console -->
+    <meta name="google-site-verification" content="06PRjWYwXXWK-8AlnoofpWNn6_XRiHHPeFus7lDeCbw" />
+
+    <!-- Primary Meta Tags -->
+    <title>Interval — Free Online Clock, Alarm, Timer & Stopwatch</title>
+    <meta name="title" content="Interval — Free Online Clock, Alarm, Timer & Stopwatch" />
+    <meta name="description" content="Interval is a free, ad-free online alarm clock, countdown timer, stopwatch & world clock. Installable PWA with offline support, smart wake alarms, lap timing, and Picture-in-Picture. No ads, no sign-up." />
+    <meta name="keywords" content="online clock, online alarm clock, online timer, online stopwatch, countdown timer, world clock, pomodoro timer, set alarm online, free stopwatch, lap timer, alarm clock online" />
+    <meta name="author" content="achrafthedev" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://achrafthedev.github.io/Interval/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://achrafthedev.github.io/Interval/" />
+    <meta property="og:title" content="Interval — Free Online Clock, Alarm, Timer & Stopwatch" />
+    <meta property="og:description" content="The modern, ad-free alternative to vClock. Set alarms, run multiple timers, track laps, and compare world clocks — all offline-capable as an installable PWA." />
+    <meta property="og:image" content="https://achrafthedev.github.io/Interval/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Interval" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://achrafthedev.github.io/Interval/" />
+    <meta property="twitter:title" content="Interval — Free Online Clock, Alarm, Timer & Stopwatch" />
+    <meta property="twitter:description" content="The modern, ad-free alternative to vClock. Set alarms, run multiple timers, track laps, and compare world clocks — all offline-capable." />
+    <meta property="twitter:image" content="https://achrafthedev.github.io/Interval/og-image.png" />
+
+    <!-- PWA -->
     <meta name="theme-color" content="#4f46e5" />
-    <meta name="description" content="Interval — A premium clock, alarm, timer & stopwatch PWA" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Interval" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/svg+xml" href="icon.svg" />
     <link rel="apple-touch-icon" href="icon-192.png" />
+
+    <!-- Fonts (preconnect for LCP optimization) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <title>Interval</title>
+
+    <!-- JSON-LD Structured Data: WebApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Interval",
+      "url": "https://achrafthedev.github.io/Interval/",
+      "description": "A free, ad-free online alarm clock, countdown timer, stopwatch, and world clock. Installable as a PWA with full offline support.",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires a modern browser with JavaScript enabled (Chrome, Firefox, Safari, Edge).",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Online alarm clock with 8 built-in tones and smart wake",
+        "Multiple concurrent countdown timers with presets",
+        "Sequence timer for interval training (Pomodoro)",
+        "High-precision stopwatch with lap and split timing",
+        "World clock with 400+ timezones and meeting planner",
+        "Picture-in-Picture floating window",
+        "Installable PWA with full offline support",
+        "Three visual themes: OLED Black, Light, Dynamic"
+      ],
+      "screenshot": "https://achrafthedev.github.io/Interval/og-image.png",
+      "softwareVersion": "1.0.0",
+      "author": {
+        "@type": "Person",
+        "name": "achrafthedev",
+        "url": "https://github.com/achrafthedev"
+      }
+    }
+    </script>
+
+    <!-- JSON-LD Structured Data: FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Will my online alarm work if my computer goes to sleep?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Interval uses the Web Notifications API and Web Audio API to trigger alarms. If your computer is asleep or the tab is fully suspended by the OS, the alarm audio may not play. For best results, keep your device awake — Interval includes a built-in Screen Wake Lock feature that prevents your screen from sleeping while alarms are active."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use Interval completely offline?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Interval is a Progressive Web App (PWA) with a service worker that caches all assets. Once you visit the app, the clock, alarms, timers, and stopwatch all work without any internet connection. You can also install it to your home screen or desktop for a native app experience."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Interval really free with no ads?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, Interval is 100% free and open-source with zero ads, zero tracking, and zero sign-up required. The full source code is available on GitHub."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How accurate is the online stopwatch?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Interval's stopwatch uses requestAnimationFrame and performance.now() for sub-millisecond precision. It tracks both lap times and cumulative split times, with automatic fastest/slowest lap highlighting and CSV export."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I set multiple alarms and timers at the same time?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. You can create unlimited alarms with individual schedules, labels, and sound choices. The timer module supports multiple simultaneous countdown timers, and you can chain them into sequences for interval training like Pomodoro sessions."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the Pomodoro timer and how do I use it?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The Pomodoro Technique uses 25-minute work intervals followed by 5-minute breaks. In Interval, tap the 'Pomodoro' preset to instantly start a 25-minute timer, or use the Sequence Builder to create a full session with automatic work-rest-repeat cycles."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I compare times across different cities?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Add any city from 400+ worldwide timezones using the 'Add City' button. Interval shows live time, UTC offset, and the exact time difference between all your selected zones. Use the Meeting Planner slider to scrub forward or backward in time to coordinate across timezones."
+          }
+        }
+      ]
+    }
+    </script>
   </head>
   <body class="antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- SEO: Below-the-fold crawlable content (hidden when JS renders the app) -->
+    <noscript>
+      <div style="max-width:800px;margin:40px auto;padding:0 20px;font-family:Inter,system-ui,sans-serif;color:#e4e4e7">
+        <h1>Interval — Free Online Clock, Alarm, Timer & Stopwatch</h1>
+        <p>Interval is a modern, ad-free web application for all your time management needs. Use it as an online alarm clock, countdown timer, precision stopwatch, or world clock — all from your browser, with no sign-up required.</p>
+        <p>Please enable JavaScript to use Interval.</p>
+      </div>
+    </noscript>
+
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

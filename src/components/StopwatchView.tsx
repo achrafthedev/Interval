@@ -101,7 +101,7 @@ export function StopwatchView({ state, setState, ttsEnabled, setTtsEnabled }: Pr
     : -1
 
   return (
-    <div className="flex flex-col items-center h-full overflow-y-auto px-4 pb-24 md:pb-8 pt-8 md:pt-12">
+    <div className="flex flex-col items-center min-h-full px-4 pb-24 md:pb-8 pt-8 md:pt-12">
       <div className="w-full max-w-2xl flex flex-col items-center">
         {/* Main Display */}
         <div className="text-center mb-8 animate-fade-in">
