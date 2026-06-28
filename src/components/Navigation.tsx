@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { View, Theme } from '../types'
 import { useTheme } from './ThemeProvider'
-import { ClockIcon, AlarmIcon, TimerIcon, StopwatchIcon, SunIcon, MoonIcon, PaletteIcon, SettingsIcon, MaximizeIcon, ScreenIcon, GitHubIcon, HeartIcon, GlobeIcon, ChevronRightIcon } from './Icons'
+import { ClockIcon, AlarmIcon, TimerIcon, StopwatchIcon, SunIcon, MoonIcon, PaletteIcon, SettingsIcon, MaximizeIcon, ScreenIcon, GitHubIcon, HeartIcon, GlobeIcon, ChevronRightIcon, DownloadIcon } from './Icons'
 import { isWakeLockSupported, requestWakeLock, releaseWakeLock, isWakeLockActive } from '../utils/wakelock'
+import { useInstallPrompt } from '../hooks/useInstallPrompt'
 
 interface Props {
   view: View
@@ -78,6 +79,7 @@ export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Prop
   const [wakeLockOn, setWakeLockOn] = useState(isWakeLockActive())
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
+  const { canInstall, install } = useInstallPrompt()
 
   const toggleWakeLock = async () => {
     if (wakeLockOn) { await releaseWakeLock(); setWakeLockOn(false) }
@@ -161,6 +163,11 @@ export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Prop
         </div>
 
         <div className={`px-2 py-3 border-t ${border} space-y-0.5`}>
+          {canInstall && (
+            <button onClick={install} className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 transition-all">
+              <DownloadIcon size={18} /><span className="hidden lg:inline">Install App</span>
+            </button>
+          )}
           {isWakeLockSupported() && (
             <button onClick={toggleWakeLock} className={`flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm transition-all ${wakeLockOn ? 'text-green-400' : `${textSecondary} opacity-70 hover:opacity-100`}`}>
               <ScreenIcon size={18} /><span className="hidden lg:inline">{wakeLockOn ? t('common.screenOn') : t('common.keepAwake')}</span>

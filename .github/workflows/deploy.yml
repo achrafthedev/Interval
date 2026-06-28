@@ -30,7 +30,7 @@ jobs:
       - run: npm run build
 
       - name: Generate PNG icons
-        run: node generate-icons.js
+        run: node gen-icons.mjs && cp public/icon-192.png dist/ && cp public/icon-512.png dist/ && cp public/icon.svg dist/ && cp public/og-image.svg dist/
         continue-on-error: true
 
       - name: Copy 404 fallback for SPA routing
