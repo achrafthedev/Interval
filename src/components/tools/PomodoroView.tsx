@@ -20,6 +20,10 @@ export function PomodoroView() {
   const [running, setRunning] = useState(false)
   const [sessionCount, setSessionCount] = useState(0)
   const lastTickRef = useRef(0)
+  const phaseRef = useRef(phase)
+  const sessionCountRef = useRef(sessionCount)
+  phaseRef.current = phase
+  sessionCountRef.current = sessionCount
 
   const phaseSeconds = phase === 'work' ? DEFAULTS.work : phase === 'short-break' ? DEFAULTS.shortBreak : DEFAULTS.longBreak
   const progress = 1 - remainingMs / (phaseSeconds * 1000)
@@ -37,21 +41,25 @@ export function PomodoroView() {
         playTimerCompletionSound()
         if ('vibrate' in navigator) navigator.vibrate([200, 100, 200])
 
-        if (phase === 'work') {
-          const newCount = sessionCount + 1
+        if (phaseRef.current === 'work') {
+          const newCount = sessionCountRef.current + 1
           setSessionCount(newCount)
+          sessionCountRef.current = newCount
           setTotalSessions((prev) => prev + 1)
           sendNotification('Pomodoro', t('pomodoro.workComplete', { n: newCount }))
           if (newCount % DEFAULTS.sessionsBeforeLong === 0) {
             setPhase('long-break')
+            phaseRef.current = 'long-break'
             return DEFAULTS.longBreak * 1000
           } else {
             setPhase('short-break')
+            phaseRef.current = 'short-break'
             return DEFAULTS.shortBreak * 1000
           }
         } else {
           sendNotification('Pomodoro', t('pomodoro.breakOver'))
           setPhase('work')
+          phaseRef.current = 'work'
           return DEFAULTS.work * 1000
         }
       }
@@ -64,13 +72,16 @@ export function PomodoroView() {
     setRunning(!running)
   }, [running])
 
-  const reset = useCallback(() => {
+  const reset = () => {
     setRunning(false)
     setPhase('work')
+    phaseRef.current = 'work'
     setRemainingMs(DEFAULTS.work * 1000)
     setSessionCount(0)
+    sessionCountRef.current = 0
+    setTotalSessions(0)
     lastTickRef.current = 0
-  }, [])
+  }
 
   const skipPhase = useCallback(() => {
     setRunning(false)
