@@ -11,11 +11,13 @@
 
   html {
     height: 100%;
+    height: -webkit-fill-available;
     background: #000000;
   }
 
   body {
     height: 100%;
+    height: -webkit-fill-available;
     width: 100%;
     overflow: hidden;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -26,6 +28,7 @@
 
   #root {
     height: 100%;
+    height: -webkit-fill-available;
     width: 100%;
     overflow: hidden;
   }

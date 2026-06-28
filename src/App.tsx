@@ -212,7 +212,7 @@ function AppShell({
         onSettingsOpen={() => setShowSettings(true)}
         onFullscreen={toggleFullscreen}
       />
-      <main className="flex-1 min-w-0 overflow-hidden flex flex-col">
+      <main className="flex-1 min-w-0 overflow-hidden flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="flex-1 overflow-y-auto">
           {renderView()}
           <SeoContent view={view} />
