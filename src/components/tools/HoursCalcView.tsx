@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '../ThemeProvider'
 
 export function HoursCalcView() {
+  const { t } = useTranslation()
   const { textPrimary, textMuted, surface, border, isDark } = useTheme()
   const [timeA, setTimeA] = useState('09:00')
   const [timeB, setTimeB] = useState('17:30')
@@ -30,29 +32,29 @@ export function HoursCalcView() {
   return (
     <div className="flex flex-col items-center min-h-full px-4 pb-24 md:pb-8 pt-8 md:pt-12">
       <div className="w-full max-w-lg">
-        <h1 className={`text-2xl font-bold ${textPrimary} mb-1`}>Hours Calculator</h1>
-        <p className={`text-sm ${textMuted} mb-8`}>Calculate the time duration between two times.</p>
+        <h1 className={`text-2xl font-bold ${textPrimary} mb-1`}>{t('hoursCalc.title')}</h1>
+        <p className={`text-sm ${textMuted} mb-8`}>{t('hoursCalc.subtitle')}</p>
 
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <div><label className={`text-xs ${textMuted} block mb-1.5`}>Start Time</label><input type="time" value={timeA} onChange={(e) => setTimeA(e.target.value)} className={ic} /></div>
-          <div><label className={`text-xs ${textMuted} block mb-1.5`}>End Time</label><input type="time" value={timeB} onChange={(e) => setTimeB(e.target.value)} className={ic} /></div>
+          <div><label className={`text-xs ${textMuted} block mb-1.5`}>{t('hoursCalc.startTime')}</label><input type="time" value={timeA} onChange={(e) => setTimeA(e.target.value)} className={ic} /></div>
+          <div><label className={`text-xs ${textMuted} block mb-1.5`}>{t('hoursCalc.endTime')}</label><input type="time" value={timeB} onChange={(e) => setTimeB(e.target.value)} className={ic} /></div>
         </div>
 
         <label className={`flex items-center gap-2 text-sm ${textMuted} mb-6 cursor-pointer`}>
           <input type="checkbox" checked={crossesMidnight} onChange={(e) => setCrossesMidnight(e.target.checked)} className="accent-indigo-600 w-4 h-4" />
-          Crosses midnight (overnight shift)
+          {t('hoursCalc.crossesMidnight')}
         </label>
 
         <div className={`p-6 rounded-2xl border ${border} ${surface} text-center mb-6`}>
-          <div className={`text-sm ${textMuted} mb-2`}>Duration</div>
+          <div className={`text-sm ${textMuted} mb-2`}>{t('hoursCalc.duration')}</div>
           <div className={`time-display text-4xl font-bold ${textPrimary}`}>{result.hours}h {String(result.minutes).padStart(2, '0')}m</div>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
           {[
-            { v: result.decimal, l: 'Decimal Hours' },
-            { v: result.totalMinutes, l: 'Total Minutes' },
-            { v: result.totalMinutes * 60, l: 'Total Seconds' },
+            { v: result.decimal, l: t('hoursCalc.decimalHours') },
+            { v: result.totalMinutes, l: t('hoursCalc.totalMinutes') },
+            { v: result.totalMinutes * 60, l: t('hoursCalc.totalSeconds') },
           ].map(({ v, l }) => (
             <div key={l} className={`p-4 rounded-2xl border ${border} ${surface} text-center`}>
               <div className={`time-display text-xl font-bold ${textPrimary}`}>{v}</div>

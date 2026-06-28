@@ -1,4 +1,5 @@
 import { useRef, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from './ThemeProvider'
 import { useAnimationFrame } from '../hooks/useAnimationFrame'
 import { formatMs, formatMsToSpeech } from '../utils/time'
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function StopwatchView({ state, setState, ttsEnabled, setTtsEnabled }: Props) {
+  const { t } = useTranslation()
   const { textPrimary, textSecondary, textMuted, surface, border, isDark } = useTheme()
   const stateRef = useRef(state)
   stateRef.current = state
@@ -110,7 +112,7 @@ export function StopwatchView({ state, setState, ttsEnabled, setTtsEnabled }: Pr
           </div>
           {state.running && state.laps.length > 0 && (
             <div className={`time-display text-xl mt-2 ${textSecondary}`}>
-              Lap {state.laps.length + 1}: {formatMs(state.elapsedMs - state.lapStartMs)}
+              {t('stopwatch.lap')} {state.laps.length + 1}: {formatMs(state.elapsedMs - state.lapStartMs)}
             </div>
           )}
         </div>
@@ -123,7 +125,7 @@ export function StopwatchView({ state, setState, ttsEnabled, setTtsEnabled }: Pr
               className="px-8 py-3.5 rounded-2xl text-base font-semibold bg-indigo-600 text-white hover:bg-indigo-500 transition-all hover:scale-105 flex items-center gap-2"
             >
               <PlayIcon size={18} />
-              {state.elapsedMs > 0 ? 'Resume' : 'Start'}
+              {state.elapsedMs > 0 ? t('common.resume') : t('common.start')}
             </button>
           ) : (
             <>
@@ -132,14 +134,14 @@ export function StopwatchView({ state, setState, ttsEnabled, setTtsEnabled }: Pr
                 className="px-8 py-3.5 rounded-2xl text-base font-semibold bg-amber-500 text-white hover:bg-amber-400 transition-all flex items-center gap-2"
               >
                 <PauseIcon size={18} />
-                Pause
+                {t('common.pause')}
               </button>
               <button
                 onClick={lap}
                 className={`px-6 py-3.5 rounded-2xl text-base font-semibold border ${border} ${textSecondary} hover:text-indigo-500 hover:border-indigo-500/50 transition-all flex items-center gap-2`}
               >
                 <FlagIcon size={18} />
-                Lap
+                {t('stopwatch.lap')}
               </button>
             </>
           )}
@@ -149,7 +151,7 @@ export function StopwatchView({ state, setState, ttsEnabled, setTtsEnabled }: Pr
               className={`px-6 py-3.5 rounded-2xl text-base font-semibold border ${border} ${textSecondary} hover:text-red-400 hover:border-red-400/50 transition-all flex items-center gap-2`}
             >
               <ResetIcon size={18} />
-              Reset
+              {t('common.reset')}
             </button>
           )}
         </div>
@@ -164,7 +166,7 @@ export function StopwatchView({ state, setState, ttsEnabled, setTtsEnabled }: Pr
             title="Announce lap times"
           >
             <SpeechIcon size={16} />
-            Voice
+            {t('stopwatch.voice')}
           </button>
           {isPiPSupported() && (
             <button
@@ -175,7 +177,7 @@ export function StopwatchView({ state, setState, ttsEnabled, setTtsEnabled }: Pr
               title="Picture-in-Picture"
             >
               <PipIcon size={16} />
-              PiP
+              {t('stopwatch.pip')}
             </button>
           )}
           {state.laps.length > 0 && (
@@ -185,7 +187,7 @@ export function StopwatchView({ state, setState, ttsEnabled, setTtsEnabled }: Pr
               title="Export as CSV"
             >
               <DownloadIcon size={16} />
-              Export
+              {t('common.export')}
             </button>
           )}
         </div>
@@ -194,10 +196,10 @@ export function StopwatchView({ state, setState, ttsEnabled, setTtsEnabled }: Pr
         {state.laps.length > 0 && (
           <div className={`w-full rounded-2xl border ${border} ${surface} overflow-hidden`}>
             <div className={`grid grid-cols-4 gap-4 px-5 py-3 text-xs font-semibold ${textMuted} uppercase tracking-wider border-b ${border}`}>
-              <span>Lap</span>
-              <span className="text-right">Lap Time</span>
-              <span className="text-right">Split Time</span>
-              <span className="text-right">Delta</span>
+              <span>{t('stopwatch.lapHeader')}</span>
+              <span className="text-right">{t('stopwatch.lapTime')}</span>
+              <span className="text-right">{t('stopwatch.splitTime')}</span>
+              <span className="text-right">{t('stopwatch.delta')}</span>
             </div>
             <div className="max-h-[40vh] overflow-y-auto">
               {[...state.laps].reverse().map((l, revIdx) => {
@@ -242,7 +244,7 @@ export function StopwatchView({ state, setState, ttsEnabled, setTtsEnabled }: Pr
         {state.laps.length === 0 && state.elapsedMs === 0 && (
           <div className={`text-center mt-8 ${textMuted}`}>
             <FlagIcon size={48} className="mx-auto mb-3 opacity-30" />
-            <p className="text-sm">Start the stopwatch and tap Lap to record times</p>
+            <p className="text-sm">{t('stopwatch.startTip')}</p>
           </div>
         )}
       </div>

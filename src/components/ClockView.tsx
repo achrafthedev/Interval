@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from './ThemeProvider'
 import { useTime } from '../hooks/useTime'
 import { AnalogClock } from './AnalogClock'
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog, countdownTarget, setCountdownTarget }: Props) {
+  const { t } = useTranslation()
   const now = useTime()
   const { textPrimary, textSecondary, textMuted, surface, border, isDark } = useTheme()
   const [showAdd, setShowAdd] = useState(false)
@@ -199,27 +201,27 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
           className={`px-3 py-2 rounded-xl text-sm font-medium border ${border} ${surface} ${textSecondary} transition-all hover:scale-105 flex items-center gap-1.5 ${geoLoading ? 'opacity-50' : ''}`}
         >
           <GlobeIcon size={14} />
-          {geoLoading ? 'Detecting...' : geoLocation ? localLabel : 'Detect Location'}
+          {geoLoading ? t('clock.detecting') : geoLocation ? localLabel : t('clock.detectLocation')}
         </button>
         <button
           onClick={() => setShowPlanner(!showPlanner)}
           className={`px-3 py-2 rounded-xl text-sm font-medium border ${border} ${surface} ${textSecondary} transition-all hover:scale-105 flex items-center gap-1.5`}
         >
           <SliderIcon size={14} />
-          Meeting Planner
+          {t('clock.meetingPlanner')}
         </button>
         <button
           onClick={() => setShowCountdownSetup(true)}
           className={`px-3 py-2 rounded-xl text-sm font-medium border ${border} ${surface} ${textSecondary} transition-all hover:scale-105`}
         >
-          Countdown
+          {t('clock.countdown')}
         </button>
         <button
           onClick={() => setShowAdd(true)}
           className="px-3 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white transition-all hover:bg-indigo-500 hover:scale-105 flex items-center gap-1.5"
         >
           <PlusIcon size={14} />
-          Add City
+          {t('clock.addCity')}
         </button>
       </div>
 
@@ -228,17 +230,17 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
         <div className={`w-full max-w-2xl mb-6 p-5 rounded-2xl border ${border} ${surface} animate-slide-up`}>
           <div className="flex items-center justify-between mb-3">
             <h3 className={`text-sm font-semibold ${textPrimary}`}>{countdownData.label}</h3>
-            <button onClick={() => setCountdownTarget('')} className={`text-xs ${textMuted} hover:text-red-400`}>Remove</button>
+            <button onClick={() => setCountdownTarget('')} className={`text-xs ${textMuted} hover:text-red-400`}>{t('common.remove')}</button>
           </div>
           {countdownData.passed ? (
-            <p className={`text-center text-sm ${textMuted}`}>This event has passed</p>
+            <p className={`text-center text-sm ${textMuted}`}>{t('clock.eventPassed')}</p>
           ) : (
             <div className="grid grid-cols-4 gap-3 text-center">
               {[
-                { value: countdownData.days, label: 'Days' },
-                { value: countdownData.hours, label: 'Hours' },
-                { value: countdownData.minutes, label: 'Min' },
-                { value: countdownData.seconds, label: 'Sec' },
+                { value: countdownData.days, label: t('clock.days') },
+                { value: countdownData.hours, label: t('clock.hours') },
+                { value: countdownData.minutes, label: t('clock.min') },
+                { value: countdownData.seconds, label: t('clock.sec') },
               ].map(({ value, label }) => (
                 <div key={label}>
                   <div className={`time-display text-3xl sm:text-4xl font-bold ${textPrimary}`}>
@@ -256,9 +258,9 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
       {showPlanner && zones.length > 0 && (
         <div className={`w-full max-w-2xl mb-6 p-5 rounded-2xl border ${border} ${surface} animate-slide-up`}>
           <div className="flex items-center justify-between mb-3">
-            <h3 className={`text-sm font-semibold ${textPrimary}`}>Time Slider</h3>
+            <h3 className={`text-sm font-semibold ${textPrimary}`}>{t('clock.timeSlider')}</h3>
             <span className={`text-xs ${textMuted}`}>
-              {sliderOffset === 0 ? 'Now' : `${sliderOffset > 0 ? '+' : ''}${sliderOffset}h`}
+              {sliderOffset === 0 ? t('clock.now') : `${sliderOffset > 0 ? '+' : ''}${sliderOffset}h`}
             </span>
           </div>
           <input
@@ -323,7 +325,7 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
       {/* Zone-to-Zone Distance Calculator */}
       {zones.length >= 2 && (
         <div className={`w-full max-w-2xl mt-6 p-5 rounded-2xl border ${border} ${surface} animate-fade-in`}>
-          <h3 className={`text-sm font-semibold ${textPrimary} mb-3`}>Time Distances</h3>
+          <h3 className={`text-sm font-semibold ${textPrimary} mb-3`}>{t('clock.timeDistances')}</h3>
           <div className="space-y-1.5">
             {zones.map((a, i) =>
               zones.slice(i + 1).map((b) => {
@@ -348,7 +350,7 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
       {zones.length === 0 && (
         <div className={`text-center mt-8 ${textMuted}`}>
           <GlobeIcon size={48} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Add cities to compare time zones</p>
+          <p className="text-sm">{t('clock.addCitiesToCompare')}</p>
         </div>
       )}
 
@@ -360,7 +362,7 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className={`text-lg font-semibold ${textPrimary}`}>Add City</h2>
+              <h2 className={`text-lg font-semibold ${textPrimary}`}>{t('clock.addCity')}</h2>
               <button onClick={() => setShowAdd(false)} className={`p-1 rounded-lg ${textMuted}`}>
                 <XIcon size={20} />
               </button>
@@ -368,7 +370,7 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
             <div className="relative mb-3">
               <input
                 type="text"
-                placeholder="Search any city worldwide..."
+                placeholder={t('clock.searchCities')}
                 value={search}
                 onChange={(e) => handleSearch(e.target.value)}
                 autoFocus
@@ -395,10 +397,10 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
                 </button>
               ))}
               {filteredResults.length === 0 && !apiLoading && search.trim().length >= 2 && (
-                <p className={`text-center py-6 text-sm ${textMuted}`}>No cities found for "{search}"</p>
+                <p className={`text-center py-6 text-sm ${textMuted}`}>{t('clock.noCitiesMatch', { query: search })}</p>
               )}
               {filteredResults.length === 0 && apiLoading && (
-                <p className={`text-center py-6 text-sm ${textMuted}`}>Searching worldwide...</p>
+                <p className={`text-center py-6 text-sm ${textMuted}`}>{t('clock.searchingWorldwide')}</p>
               )}
             </div>
           </div>
@@ -413,21 +415,21 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className={`text-lg font-semibold ${textPrimary}`}>Countdown to Date</h2>
+              <h2 className={`text-lg font-semibold ${textPrimary}`}>{t('clock.countdownToDate')}</h2>
               <button onClick={() => setShowCountdownSetup(false)} className={textMuted}><XIcon size={20} /></button>
             </div>
             <div className="mb-4">
-              <label className={`text-xs font-medium ${textMuted} block mb-1.5`}>Event Name</label>
+              <label className={`text-xs font-medium ${textMuted} block mb-1.5`}>{t('clock.eventName')}</label>
               <input
                 type="text"
-                placeholder="e.g. Birthday, New Year..."
+                placeholder={t('clock.eventNamePlaceholder')}
                 value={countdownLabel}
                 onChange={(e) => setCountdownLabel(e.target.value)}
                 className={`w-full px-4 py-3 rounded-xl border ${border} ${isDark ? 'bg-zinc-800 text-white' : 'bg-zinc-50 text-zinc-900'} text-sm outline-none focus:ring-2 focus:ring-indigo-500`}
               />
             </div>
             <div className="mb-6">
-              <label className={`text-xs font-medium ${textMuted} block mb-1.5`}>Date & Time</label>
+              <label className={`text-xs font-medium ${textMuted} block mb-1.5`}>{t('clock.dateTime')}</label>
               <input
                 type="datetime-local"
                 value={countdownDateInput}
@@ -440,7 +442,7 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
               disabled={!countdownDateInput}
               className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition-all disabled:opacity-40"
             >
-              Start Countdown
+              {t('clock.startCountdown')}
             </button>
           </div>
         </div>

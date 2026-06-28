@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from './ThemeProvider'
 import { useBackgroundTimer } from '../hooks/useBackgroundTimer'
 import { formatCountdown } from '../utils/time'
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export function TimerView({ timers, setTimers }: Props) {
+  const { t } = useTranslation()
   const { textPrimary, textSecondary, textMuted, surface, border, isDark } = useTheme()
   const [showCreate, setShowCreate] = useState(false)
   const [showSequence, setShowSequence] = useState(false)
@@ -59,7 +61,7 @@ export function TimerView({ timers, setTimers }: Props) {
       if (newRemaining <= 0) {
         playTimerCompletionSound()
         if ('vibrate' in navigator) navigator.vibrate([200, 100, 200, 100, 400])
-        sendNotification('Timer Complete', timer.label || 'Your timer has finished!')
+        sendNotification(t('timer.timerComplete'), timer.label || t('timer.timerFinished'))
 
         if (timer.loop) {
           return { ...timer, remainingMs: timer.totalSeconds * 1000 }
@@ -192,21 +194,21 @@ export function TimerView({ timers, setTimers }: Props) {
     <div className="flex flex-col items-center min-h-full px-4 pb-24 md:pb-8 pt-8 md:pt-12">
       <div className="w-full max-w-2xl">
         <div className="flex items-center justify-between mb-6">
-          <h1 className={`text-2xl font-bold ${textPrimary}`}>Timers</h1>
+          <h1 className={`text-2xl font-bold ${textPrimary}`}>{t('timer.title')}</h1>
           <div className="flex gap-2">
             <button
               onClick={() => setShowSequence(true)}
               className={`px-3 py-2 rounded-xl text-sm font-medium border ${border} ${surface} ${textSecondary} hover:text-indigo-500 transition-all flex items-center gap-1.5`}
             >
               <RepeatIcon size={14} />
-              Sequence
+              {t('timer.sequence')}
             </button>
             <button
               onClick={() => setShowCreate(true)}
               className="px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 transition-all flex items-center gap-2"
             >
               <PlusIcon size={16} />
-              New Timer
+              {t('timer.newTimer')}
             </button>
           </div>
         </div>
@@ -246,17 +248,17 @@ export function TimerView({ timers, setTimers }: Props) {
                     <span className={`text-sm font-medium ${textSecondary}`}>{timer.label}</span>
                     {timer.loop && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400">
-                        Loop
+                        {t('timer.loop')}
                       </span>
                     )}
                     {timer.nextTimerId && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
-                        Chained
+                        {t('timer.chained')}
                       </span>
                     )}
                     {timer.finished && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">
-                        Done!
+                        {t('common.done')}
                       </span>
                     )}
                   </div>
@@ -280,14 +282,14 @@ export function TimerView({ timers, setTimers }: Props) {
                     } disabled:opacity-40`}
                   >
                     {timer.running ? <PauseIcon size={14} /> : <PlayIcon size={14} />}
-                    {timer.running ? 'Pause' : 'Start'}
+                    {timer.running ? t('common.pause') : t('common.start')}
                   </button>
                   <button
                     onClick={() => resetTimer(timer.id)}
                     className={`px-4 py-2.5 rounded-xl text-sm border ${border} ${textSecondary} hover:text-indigo-500 transition-all flex items-center gap-1.5`}
                   >
                     <ResetIcon size={14} />
-                    Reset
+                    {t('common.reset')}
                   </button>
                   <button
                     onClick={() => toggleLoop(timer.id)}
@@ -327,8 +329,8 @@ export function TimerView({ timers, setTimers }: Props) {
         {timers.length === 0 && (
           <div className={`text-center mt-16 ${textMuted}`}>
             <div className="time-display text-5xl opacity-20 mb-4">00:00</div>
-            <p className="text-sm">No active timers</p>
-            <p className="text-xs mt-1">Use a preset above or create a custom timer</p>
+            <p className="text-sm">{t('timer.noTimers')}</p>
+            <p className="text-xs mt-1">{t('timer.noTimersTip')}</p>
           </div>
         )}
       </div>
@@ -341,7 +343,7 @@ export function TimerView({ timers, setTimers }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className={`text-lg font-semibold ${textPrimary}`}>Custom Timer</h2>
+              <h2 className={`text-lg font-semibold ${textPrimary}`}>{t('timer.customTimer')}</h2>
               <button onClick={() => setShowCreate(false)} className={textMuted}><XIcon size={20} /></button>
             </div>
 
@@ -349,7 +351,7 @@ export function TimerView({ timers, setTimers }: Props) {
               <label className={`text-xs font-medium ${textMuted} block mb-1.5`}>Label</label>
               <input
                 type="text"
-                placeholder="Timer name..."
+                placeholder={t('timer.timerName')}
                 value={customLabel}
                 onChange={(e) => setCustomLabel(e.target.value)}
                 className={`w-full px-4 py-3 rounded-xl border ${border} ${isDark ? 'bg-zinc-800 text-white' : 'bg-zinc-50 text-zinc-900'} text-sm outline-none focus:ring-2 focus:ring-indigo-500`}
@@ -358,9 +360,9 @@ export function TimerView({ timers, setTimers }: Props) {
 
             <div className="grid grid-cols-3 gap-3 mb-6">
               {[
-                { label: 'Hours', value: customHours, set: setCustomHours, max: 23 },
-                { label: 'Minutes', value: customMinutes, set: setCustomMinutes, max: 59 },
-                { label: 'Seconds', value: customSeconds, set: setCustomSeconds, max: 59 },
+                { label: t('timer.hours'), value: customHours, set: setCustomHours, max: 23 },
+                { label: t('timer.minutes'), value: customMinutes, set: setCustomMinutes, max: 59 },
+                { label: t('timer.seconds'), value: customSeconds, set: setCustomSeconds, max: 59 },
               ].map(({ label, value, set, max }) => (
                 <div key={label}>
                   <label className={`text-xs ${textMuted} block mb-1.5 text-center`}>{label}</label>
@@ -379,11 +381,11 @@ export function TimerView({ timers, setTimers }: Props) {
             <button
               onClick={() => {
                 const total = customHours * 3600 + customMinutes * 60 + customSeconds
-                if (total > 0) addTimer(customLabel || 'Custom Timer', total)
+                if (total > 0) addTimer(customLabel || t('timer.customTimer'), total)
               }}
               className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition-all"
             >
-              Start Timer
+              {t('timer.startTimer')}
             </button>
           </div>
         </div>
@@ -397,12 +399,12 @@ export function TimerView({ timers, setTimers }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className={`text-lg font-semibold ${textPrimary}`}>Timer Sequence</h2>
+              <h2 className={`text-lg font-semibold ${textPrimary}`}>{t('timer.timerSequence')}</h2>
               <button onClick={() => setShowSequence(false)} className={textMuted}><XIcon size={20} /></button>
             </div>
 
             <div className="mb-4">
-              <label className={`text-xs font-medium ${textMuted} block mb-1.5`}>Session Name</label>
+              <label className={`text-xs font-medium ${textMuted} block mb-1.5`}>{t('timer.sessionName')}</label>
               <input
                 type="text"
                 value={seqLabel}
@@ -412,7 +414,7 @@ export function TimerView({ timers, setTimers }: Props) {
             </div>
 
             <div className="mb-4">
-              <label className={`text-xs font-medium ${textMuted} block mb-2`}>Steps</label>
+              <label className={`text-xs font-medium ${textMuted} block mb-2`}>{t('timer.steps')}</label>
               <div className="space-y-2">
                 {seqSteps.map((step, i) => (
                   <div key={i} className="flex gap-2 items-center">
@@ -424,7 +426,7 @@ export function TimerView({ timers, setTimers }: Props) {
                         updated[i] = { ...step, label: e.target.value }
                         setSeqSteps(updated)
                       }}
-                      placeholder="Step label"
+                      placeholder={t('timer.stepLabel')}
                       className={`flex-1 px-3 py-2 rounded-lg border ${border} ${isDark ? 'bg-zinc-800 text-white' : 'bg-zinc-50 text-zinc-900'} text-sm outline-none`}
                     />
                     <input
@@ -454,12 +456,12 @@ export function TimerView({ timers, setTimers }: Props) {
                 onClick={() => setSeqSteps([...seqSteps, { label: `Step ${seqSteps.length + 1}`, seconds: 5 * 60 }])}
                 className={`mt-2 text-xs ${textMuted} hover:text-indigo-500 flex items-center gap-1`}
               >
-                <PlusIcon size={12} /> Add step
+                <PlusIcon size={12} /> {t('timer.addStep')}
               </button>
             </div>
 
             <div className="mb-6">
-              <label className={`text-xs font-medium ${textMuted} block mb-1.5`}>Repeat sequence</label>
+              <label className={`text-xs font-medium ${textMuted} block mb-1.5`}>{t('timer.repeatSequence')}</label>
               <input
                 type="number"
                 min={1}
@@ -468,14 +470,14 @@ export function TimerView({ timers, setTimers }: Props) {
                 onChange={(e) => setSeqRepeats(Math.max(1, parseInt(e.target.value) || 1))}
                 className={`w-24 text-center px-3 py-2 rounded-lg border ${border} ${isDark ? 'bg-zinc-800 text-white' : 'bg-zinc-50 text-zinc-900'} text-sm outline-none`}
               />
-              <span className={`text-xs ${textMuted} ml-2`}>times</span>
+              <span className={`text-xs ${textMuted} ml-2`}>{t('timer.times')}</span>
             </div>
 
             <button
               onClick={addSequence}
               className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition-all"
             >
-              Create Sequence ({seqSteps.length * seqRepeats} timers)
+              {t('timer.createSequence', { count: seqSteps.length * seqRepeats })}
             </button>
           </div>
         </div>

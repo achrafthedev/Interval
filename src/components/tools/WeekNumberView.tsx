@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '../ThemeProvider'
 
 function getISOWeek(date: Date): number {
@@ -15,6 +16,7 @@ function getDayOfYear(date: Date): number {
 }
 
 export function WeekNumberView() {
+  const { t } = useTranslation()
   const { textPrimary, textMuted, surface, border, isDark } = useTheme()
   const [dateStr, setDateStr] = useState(() => new Date().toISOString().slice(0, 10))
 
@@ -37,30 +39,30 @@ export function WeekNumberView() {
   return (
     <div className="flex flex-col items-center min-h-full px-4 pb-24 md:pb-8 pt-8 md:pt-12">
       <div className="w-full max-w-lg">
-        <h1 className={`text-2xl font-bold ${textPrimary} mb-1`}>Week Number</h1>
-        <p className={`text-sm ${textMuted} mb-8`}>Find the ISO week number and day of the year for any date.</p>
+        <h1 className={`text-2xl font-bold ${textPrimary} mb-1`}>{t('weekNumber.title')}</h1>
+        <p className={`text-sm ${textMuted} mb-8`}>{t('weekNumber.subtitle')}</p>
 
         <div className="mb-6">
-          <label className={`text-xs ${textMuted} block mb-1.5`}>Date</label>
+          <label className={`text-xs ${textMuted} block mb-1.5`}>{t('weekNumber.date')}</label>
           <input type="date" value={dateStr} onChange={(e) => setDateStr(e.target.value)} className={ic} />
         </div>
 
         {result && (
           <>
             <div className={`p-6 rounded-2xl border ${border} ${surface} text-center mb-6`}>
-              <div className={`text-sm ${textMuted} mb-2`}>ISO Week Number</div>
+              <div className={`text-sm ${textMuted} mb-2`}>{t('weekNumber.isoWeek')}</div>
               <div className={`time-display text-6xl font-bold ${textPrimary}`}>{result.week}</div>
               <div className={`text-sm ${textMuted} mt-2`}>{result.dayName}</div>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
-                { v: result.dayOfYear, l: 'Day of Year' },
-                { v: `Q${result.quarter}`, l: 'Quarter' },
-                { v: result.daysLeft, l: 'Days Left' },
-                { v: result.daysInYear, l: 'Days in Year' },
-                { v: result.isLeap ? 'Yes' : 'No', l: 'Leap Year' },
-                { v: result.week, l: 'Week of 52' },
+                { v: result.dayOfYear, l: t('weekNumber.dayOfYear') },
+                { v: `Q${result.quarter}`, l: t('weekNumber.quarter') },
+                { v: result.daysLeft, l: t('weekNumber.daysLeft') },
+                { v: result.daysInYear, l: t('weekNumber.daysInYear') },
+                { v: result.isLeap ? t('common.yes') : t('common.no'), l: t('weekNumber.leapYear') },
+                { v: result.week, l: t('weekNumber.weekOf52') },
               ].map(({ v, l }) => (
                 <div key={l} className={`p-4 rounded-2xl border ${border} ${surface} text-center`}>
                   <div className={`time-display text-xl font-bold ${textPrimary}`}>{v}</div>

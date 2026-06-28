@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from './ThemeProvider'
 import { useTime } from '../hooks/useTime'
 import { PlusIcon, TrashIcon, VolumeIcon, XIcon, PlayIcon, PauseIcon } from './Icons'
@@ -8,9 +9,6 @@ import { sendNotification, requestNotificationPermission } from '../utils/notifi
 import type { Alarm } from '../types'
 
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
-const DAY_LABELS: Record<string, string> = {
-  mon: 'M', tue: 'T', wed: 'W', thu: 'T', fri: 'F', sat: 'S', sun: 'S',
-}
 
 const SNOOZE_MINUTES = 5
 
@@ -20,8 +18,14 @@ interface Props {
 }
 
 export function AlarmView({ alarms, setAlarms }: Props) {
+  const { t } = useTranslation()
   const now = useTime()
   const { textPrimary, textSecondary, textMuted, surface, border, isDark } = useTheme()
+
+  const DAY_LABELS: Record<string, string> = {
+    mon: t('alarm.dayMon'), tue: t('alarm.dayTue'), wed: t('alarm.dayWed'),
+    thu: t('alarm.dayThu'), fri: t('alarm.dayFri'), sat: t('alarm.daySat'), sun: t('alarm.daySun'),
+  }
   const [showAdd, setShowAdd] = useState(false)
   const [editAlarm, setEditAlarm] = useState<Alarm | null>(null)
   const [ringingAlarmId, setRingingAlarmId] = useState<string | null>(null)
@@ -171,13 +175,13 @@ export function AlarmView({ alarms, setAlarms }: Props) {
     <div className="flex flex-col items-center min-h-full px-4 pb-24 md:pb-8 pt-8 md:pt-12">
       <div className="w-full max-w-lg">
         <div className="flex items-center justify-between mb-8">
-          <h1 className={`text-2xl font-bold ${textPrimary}`}>Alarms</h1>
+          <h1 className={`text-2xl font-bold ${textPrimary}`}>{t('alarm.title')}</h1>
           <button
             onClick={() => { setEditAlarm(createAlarm()); setShowAdd(true) }}
             className="px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 transition-all flex items-center gap-2"
           >
             <PlusIcon size={16} />
-            New Alarm
+            {t('alarm.newAlarm')}
           </button>
         </div>
 
@@ -196,13 +200,13 @@ export function AlarmView({ alarms, setAlarms }: Props) {
                 onClick={snoozeAlarm}
                 className="px-6 py-3 rounded-xl bg-white/20 text-white font-semibold hover:bg-white/30 transition-all"
               >
-                Snooze ({SNOOZE_MINUTES}m)
+                {t('alarm.snooze', { minutes: SNOOZE_MINUTES })}
               </button>
               <button
                 onClick={dismissAlarm}
                 className="px-8 py-3 rounded-xl bg-white text-indigo-600 font-semibold hover:bg-zinc-100 transition-all"
               >
-                Dismiss
+                {t('alarm.dismiss')}
               </button>
             </div>
           </div>
@@ -242,10 +246,10 @@ export function AlarmView({ alarms, setAlarms }: Props) {
                       ))}
                     </div>
                   ) : (
-                    <span className={`text-xs ${textMuted}`}>Once</span>
+                    <span className={`text-xs ${textMuted}`}>{t('common.once')}</span>
                   )}
                   {alarm.smartWake && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">Smart Wake</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">{t('alarm.smartWake')}</span>
                   )}
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${isDark ? 'bg-white/5' : 'bg-zinc-100'} ${textMuted}`}>
                     {getSoundById(alarm.soundId || 'gentle-chime')?.name || alarm.soundName}
@@ -278,8 +282,8 @@ export function AlarmView({ alarms, setAlarms }: Props) {
         {alarms.length === 0 && (
           <div className={`text-center mt-16 ${textMuted}`}>
             <VolumeIcon size={48} className="mx-auto mb-3 opacity-30" />
-            <p className="text-sm">No alarms set</p>
-            <p className="text-xs mt-1">Tap "New Alarm" to get started</p>
+            <p className="text-sm">{t('alarm.noAlarms')}</p>
+            <p className="text-xs mt-1">{t('alarm.noAlarmsTip')}</p>
           </div>
         )}
       </div>
@@ -293,7 +297,7 @@ export function AlarmView({ alarms, setAlarms }: Props) {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-lg font-semibold ${textPrimary}`}>
-                {alarms.find((a) => a.id === editAlarm.id) ? 'Edit Alarm' : 'New Alarm'}
+                {alarms.find((a) => a.id === editAlarm.id) ? t('alarm.editAlarm') : t('alarm.newAlarm')}
               </h2>
               <button onClick={() => { previewHandle?.stop(); setShowAdd(false) }} className={textMuted}><XIcon size={20} /></button>
             </div>
@@ -310,10 +314,10 @@ export function AlarmView({ alarms, setAlarms }: Props) {
 
             {/* Label */}
             <div className="mb-5">
-              <label className={`text-xs font-medium ${textMuted} block mb-1.5`}>Label</label>
+              <label className={`text-xs font-medium ${textMuted} block mb-1.5`}>{t('alarm.label')}</label>
               <input
                 type="text"
-                placeholder="e.g. Wake up, Meeting..."
+                placeholder={t('alarm.labelPlaceholder')}
                 value={editAlarm.label}
                 onChange={(e) => setEditAlarm({ ...editAlarm, label: e.target.value })}
                 className={`w-full px-4 py-3 rounded-xl border ${border} ${isDark ? 'bg-zinc-800 text-white' : 'bg-zinc-50 text-zinc-900'} text-sm outline-none focus:ring-2 focus:ring-indigo-500`}
@@ -322,7 +326,7 @@ export function AlarmView({ alarms, setAlarms }: Props) {
 
             {/* Repeat Days */}
             <div className="mb-5">
-              <label className={`text-xs font-medium ${textMuted} block mb-2`}>Repeat</label>
+              <label className={`text-xs font-medium ${textMuted} block mb-2`}>{t('alarm.repeat')}</label>
               <div className="flex gap-2">
                 {DAYS.map((d) => {
                   const active = editAlarm.repeat.includes(d)
@@ -349,19 +353,19 @@ export function AlarmView({ alarms, setAlarms }: Props) {
                   onClick={() => setEditAlarm({ ...editAlarm, repeat: ['mon', 'tue', 'wed', 'thu', 'fri'] })}
                   className={`text-xs px-3 py-1 rounded-lg border ${border} ${textMuted} hover:text-indigo-500`}
                 >
-                  Weekdays
+                  {t('alarm.weekdays')}
                 </button>
                 <button
                   onClick={() => setEditAlarm({ ...editAlarm, repeat: ['sat', 'sun'] })}
                   className={`text-xs px-3 py-1 rounded-lg border ${border} ${textMuted} hover:text-indigo-500`}
                 >
-                  Weekends
+                  {t('alarm.weekends')}
                 </button>
                 <button
                   onClick={() => setEditAlarm({ ...editAlarm, repeat: [...DAYS] })}
                   className={`text-xs px-3 py-1 rounded-lg border ${border} ${textMuted} hover:text-indigo-500`}
                 >
-                  Every Day
+                  {t('alarm.everyDay')}
                 </button>
               </div>
             </div>
@@ -369,8 +373,8 @@ export function AlarmView({ alarms, setAlarms }: Props) {
             {/* Smart Wake */}
             <div className={`flex items-center justify-between mb-5 p-4 rounded-xl border ${border}`}>
               <div>
-                <p className={`text-sm font-medium ${textPrimary}`}>Smart Wake</p>
-                <p className={`text-xs ${textMuted}`}>Gradual volume fade-in over 30 seconds</p>
+                <p className={`text-sm font-medium ${textPrimary}`}>{t('alarm.smartWake')}</p>
+                <p className={`text-xs ${textMuted}`}>{t('alarm.smartWakeDesc')}</p>
               </div>
               <button
                 onClick={() => setEditAlarm({ ...editAlarm, smartWake: !editAlarm.smartWake })}
@@ -386,10 +390,10 @@ export function AlarmView({ alarms, setAlarms }: Props) {
 
             {/* Sound Selection */}
             <div className="mb-5">
-              <label className={`text-xs font-medium ${textMuted} block mb-2`}>Alarm Sound</label>
+              <label className={`text-xs font-medium ${textMuted} block mb-2`}>{t('alarm.alarmSound')}</label>
               {(['gentle', 'standard', 'intense'] as const).map((category) => (
                 <div key={category} className="mb-3">
-                  <p className={`text-[10px] uppercase tracking-wider font-semibold ${textMuted} mb-1.5`}>{category}</p>
+                  <p className={`text-[10px] uppercase tracking-wider font-semibold ${textMuted} mb-1.5`}>{t(`alarm.${category}`)}</p>
                   <div className="space-y-1">
                     {SOUND_LIBRARY.filter((s) => s.category === category).map((sound) => {
                       const selected = (editAlarm.soundId || 'gentle-chime') === sound.id && !editAlarm.soundUrl
@@ -412,7 +416,7 @@ export function AlarmView({ alarms, setAlarms }: Props) {
                                 ? 'text-indigo-500'
                                 : `${textMuted} hover:text-indigo-500`
                             }`}
-                            title="Preview"
+                            title={t('alarm.preview')}
                           >
                             {previewingId === sound.id ? <PauseIcon size={14} /> : <PlayIcon size={14} />}
                           </button>
@@ -424,10 +428,10 @@ export function AlarmView({ alarms, setAlarms }: Props) {
               ))}
 
               <div className="mt-4 pt-3 border-t border-dashed" style={{ borderColor: isDark ? '#333' : '#ddd' }}>
-                <label className={`text-xs ${textMuted} block mb-1`}>Custom Audio URL</label>
+                <label className={`text-xs ${textMuted} block mb-1`}>{t('alarm.customAudioUrl')}</label>
                 <input
                   type="url"
-                  placeholder="https://example.com/alarm.mp3"
+                  placeholder={t('alarm.customUrlPlaceholder')}
                   value={editAlarm.soundUrl}
                   onChange={(e) => setEditAlarm({ ...editAlarm, soundUrl: e.target.value, soundName: 'Custom', soundId: '' })}
                   className={`w-full px-4 py-2.5 rounded-xl border ${border} ${isDark ? 'bg-zinc-800 text-white' : 'bg-zinc-50 text-zinc-900'} text-sm outline-none focus:ring-2 focus:ring-indigo-500`}
@@ -440,7 +444,7 @@ export function AlarmView({ alarms, setAlarms }: Props) {
               onClick={() => saveAlarm(editAlarm)}
               className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition-all"
             >
-              Save Alarm
+              {t('alarm.saveAlarm')}
             </button>
           </div>
         </div>

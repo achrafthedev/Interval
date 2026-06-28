@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '../ThemeProvider'
 import { useBackgroundTimer } from '../../hooks/useBackgroundTimer'
 import { playTimerCompletionSound } from '../../utils/sounds'
@@ -11,6 +12,7 @@ type Phase = 'work' | 'short-break' | 'long-break'
 const DEFAULTS = { work: 25 * 60, shortBreak: 5 * 60, longBreak: 15 * 60, sessionsBeforeLong: 4 }
 
 export function PomodoroView() {
+  const { t } = useTranslation()
   const { textPrimary, textSecondary, textMuted, surface, border, isDark } = useTheme()
   const [totalSessions, setTotalSessions] = useLocalStorage('interval-pomo-sessions', 0)
   const [phase, setPhase] = useState<Phase>('work')
@@ -38,8 +40,8 @@ export function PomodoroView() {
         if (phase === 'work') {
           const newCount = sessionCount + 1
           setSessionCount(newCount)
-          setTotalSessions((t) => t + 1)
-          sendNotification('Pomodoro', `Work session ${newCount} complete! Time for a break.`)
+          setTotalSessions((prev) => prev + 1)
+          sendNotification('Pomodoro', t('pomodoro.workComplete', { n: newCount }))
           if (newCount % DEFAULTS.sessionsBeforeLong === 0) {
             setPhase('long-break')
             return DEFAULTS.longBreak * 1000
@@ -48,7 +50,7 @@ export function PomodoroView() {
             return DEFAULTS.shortBreak * 1000
           }
         } else {
-          sendNotification('Pomodoro', 'Break is over! Time to focus.')
+          sendNotification('Pomodoro', t('pomodoro.breakOver'))
           setPhase('work')
           return DEFAULTS.work * 1000
         }
@@ -76,7 +78,7 @@ export function PomodoroView() {
     if (phase === 'work') {
       const newCount = sessionCount + 1
       setSessionCount(newCount)
-      setTotalSessions((t) => t + 1)
+      setTotalSessions((prev) => prev + 1)
       if (newCount % DEFAULTS.sessionsBeforeLong === 0) {
         setPhase('long-break')
         setRemainingMs(DEFAULTS.longBreak * 1000)
@@ -95,13 +97,13 @@ export function PomodoroView() {
 
   const phaseColor = phase === 'work' ? 'text-indigo-500' : phase === 'short-break' ? 'text-green-400' : 'text-amber-400'
   const phaseBg = phase === 'work' ? 'bg-indigo-600' : phase === 'short-break' ? 'bg-green-500' : 'bg-amber-500'
-  const phaseLabel = phase === 'work' ? 'Focus' : phase === 'short-break' ? 'Short Break' : 'Long Break'
+  const phaseLabel = phase === 'work' ? t('pomodoro.focus') : phase === 'short-break' ? t('pomodoro.shortBreak') : t('pomodoro.longBreak')
 
   return (
     <div className="flex flex-col items-center justify-center min-h-full px-4 pb-24 md:pb-8 pt-8 md:pt-12">
       <div className="w-full max-w-md text-center">
-        <h1 className={`text-2xl font-bold ${textPrimary} mb-1`}>Pomodoro Timer</h1>
-        <p className={`text-sm ${textMuted} mb-8`}>Focus in 25-minute sessions with automatic breaks.</p>
+        <h1 className={`text-2xl font-bold ${textPrimary} mb-1`}>{t('pomodoro.title')}</h1>
+        <p className={`text-sm ${textMuted} mb-8`}>{t('pomodoro.subtitle')}</p>
 
         {/* Phase Indicator */}
         <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium ${phaseBg} text-white mb-6`}>
@@ -123,7 +125,7 @@ export function PomodoroView() {
             <div className={`time-display text-5xl font-bold ${textPrimary}`}>
               {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
             </div>
-            <div className={`text-xs ${textMuted} mt-1`}>Session {sessionCount + (phase === 'work' ? 1 : 0)}</div>
+            <div className={`text-xs ${textMuted} mt-1`}>{t('pomodoro.session')} {sessionCount + (phase === 'work' ? 1 : 0)}</div>
           </div>
         </div>
 
@@ -131,24 +133,24 @@ export function PomodoroView() {
         <div className="flex items-center justify-center gap-3 mb-8">
           <button onClick={toggle}
             className={`px-8 py-3.5 rounded-2xl text-base font-semibold transition-all flex items-center gap-2 ${running ? 'bg-amber-500 text-white' : `${phaseBg} text-white`}`}>
-            {running ? <><PauseIcon size={18} /> Pause</> : <><PlayIcon size={18} /> {remainingMs < phaseSeconds * 1000 ? 'Resume' : 'Start'}</>}
+            {running ? <><PauseIcon size={18} /> {t('common.pause')}</> : <><PlayIcon size={18} /> {remainingMs < phaseSeconds * 1000 ? t('common.resume') : t('common.start')}</>}
           </button>
           <button onClick={skipPhase}
             className={`px-5 py-3.5 rounded-2xl text-sm font-medium border ${border} ${textSecondary} transition-all`}>
-            Skip
+            {t('pomodoro.skip')}
           </button>
           <button onClick={reset}
             className={`px-5 py-3.5 rounded-2xl text-sm font-medium border ${border} ${textMuted} hover:text-red-400 transition-all flex items-center gap-1.5`}>
-            <ResetIcon size={16} /> Reset
+            <ResetIcon size={16} /> {t('common.reset')}
           </button>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { v: sessionCount, l: 'This Round' },
-            { v: totalSessions, l: 'All Time' },
-            { v: `${Math.floor(totalSessions * 25 / 60)}h ${(totalSessions * 25) % 60}m`, l: 'Total Focus' },
+            { v: sessionCount, l: t('pomodoro.thisRound') },
+            { v: totalSessions, l: t('pomodoro.allTime') },
+            { v: `${Math.floor(totalSessions * 25 / 60)}h ${(totalSessions * 25) % 60}m`, l: t('pomodoro.totalFocus') },
           ].map(({ v, l }) => (
             <div key={l} className={`p-4 rounded-2xl border ${border} ${surface} text-center`}>
               <div className={`time-display text-xl font-bold ${textPrimary}`}>{v}</div>

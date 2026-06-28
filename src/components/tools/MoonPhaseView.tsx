@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '../ThemeProvider'
 
 function getMoonPhase(date: Date) {
@@ -35,6 +36,7 @@ function getMoonPhase(date: Date) {
 }
 
 export function MoonPhaseView() {
+  const { t } = useTranslation()
   const { textPrimary, textMuted, surface, border, isDark } = useTheme()
   const [dateStr, setDateStr] = useState(() => new Date().toISOString().slice(0, 10))
 
@@ -45,8 +47,8 @@ export function MoonPhaseView() {
   return (
     <div className="flex flex-col items-center min-h-full px-4 pb-24 md:pb-8 pt-8 md:pt-12">
       <div className="w-full max-w-lg text-center">
-        <h1 className={`text-2xl font-bold ${textPrimary} mb-1`}>Moon Phase</h1>
-        <p className={`text-sm ${textMuted} mb-8`}>View the current moon phase and illumination for any date.</p>
+        <h1 className={`text-2xl font-bold ${textPrimary} mb-1`}>{t('moonPhase.title')}</h1>
+        <p className={`text-sm ${textMuted} mb-8`}>{t('moonPhase.subtitle')}</p>
 
         <div className="max-w-xs mx-auto mb-8">
           <input type="date" value={dateStr} onChange={(e) => setDateStr(e.target.value)} className={ic} />
@@ -62,10 +64,10 @@ export function MoonPhaseView() {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
           {[
-            { v: `${moon.illumination}%`, l: 'Illumination' },
-            { v: `${moon.age} days`, l: 'Moon Age' },
-            { v: `${moon.nextNew}d`, l: 'Next New Moon' },
-            { v: `${moon.nextFull}d`, l: 'Next Full Moon' },
+            { v: `${moon.illumination}%`, l: t('moonPhase.illumination') },
+            { v: `${moon.age} days`, l: t('moonPhase.moonAge') },
+            { v: `${moon.nextNew}d`, l: t('moonPhase.nextNewMoon') },
+            { v: `${moon.nextFull}d`, l: t('moonPhase.nextFullMoon') },
           ].map(({ v, l }) => (
             <div key={l} className={`p-4 rounded-2xl border ${border} ${surface}`}>
               <div className={`text-lg font-bold ${textPrimary}`}>{v}</div>

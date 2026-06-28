@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '../ThemeProvider'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { PlusIcon, ResetIcon } from '../Icons'
 
 export function CounterView() {
+  const { t } = useTranslation()
   const { textPrimary, textMuted, surface, border, isDark } = useTheme()
   const [count, setCount] = useLocalStorage('interval-counter', 0)
   const [step, setStep] = useLocalStorage('interval-counter-step', 1)
@@ -12,8 +14,8 @@ export function CounterView() {
   return (
     <div className="flex flex-col items-center justify-center min-h-full px-4 pb-24 md:pb-8 pt-8 md:pt-12">
       <div className="w-full max-w-md text-center">
-        <h1 className={`text-2xl font-bold ${textPrimary} mb-1`}>Counter</h1>
-        <p className={`text-sm ${textMuted} mb-10`}>Count up or down. Saved in your browser.</p>
+        <h1 className={`text-2xl font-bold ${textPrimary} mb-1`}>{t('counter.title')}</h1>
+        <p className={`text-sm ${textMuted} mb-10`}>{t('counter.subtitle')}</p>
 
         <div className={`time-display text-7xl sm:text-8xl font-bold ${textPrimary} mb-10 tabular-nums select-all`}>
           {count}
@@ -35,7 +37,7 @@ export function CounterView() {
         </div>
 
         <div className="flex items-center justify-center gap-2 mb-4">
-          <span className={`text-xs ${textMuted}`}>Step:</span>
+          <span className={`text-xs ${textMuted}`}>{t('counter.step')}</span>
           {[1, 5, 10, 25, 100].map((s) => (
             <button key={s} onClick={() => setStep(s)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${step === s ? 'bg-indigo-600 text-white' : `border ${border} ${textMuted}`}`}>
