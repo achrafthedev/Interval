@@ -1,5 +1,7 @@
+import { useTranslation } from 'react-i18next'
 import { useTheme } from './ThemeProvider'
 import { XIcon, DownloadIcon, SunIcon, MoonIcon, PaletteIcon, GitHubIcon, HeartIcon, StarIcon } from './Icons'
+import { LANGUAGES, changeLanguage } from '../i18n'
 import type { Theme } from '../types'
 
 interface Props {
@@ -14,6 +16,7 @@ interface Props {
 }
 
 export function SettingsPanel({ show, onClose, use24Hour, setUse24Hour, showAnalog, setShowAnalog, showSeconds, setShowSeconds }: Props) {
+  const { t, i18n } = useTranslation()
   const { theme, setTheme, textPrimary, textSecondary, textMuted, surface, border, isDark } = useTheme()
 
   if (!show) return null
@@ -57,9 +60,9 @@ export function SettingsPanel({ show, onClose, use24Hour, setUse24Hour, showAnal
   }
 
   const themes: { id: Theme; label: string; Icon: typeof SunIcon; desc: string }[] = [
-    { id: 'oled', label: 'OLED Black', Icon: MoonIcon, desc: 'Pure black for AMOLED screens' },
-    { id: 'light', label: 'Light', Icon: SunIcon, desc: 'Clean white interface' },
-    { id: 'dynamic', label: 'Dynamic', Icon: PaletteIcon, desc: 'Changes with time of day' },
+    { id: 'oled', label: t('themes.oled'), Icon: MoonIcon, desc: t('themes.oledDesc') },
+    { id: 'light', label: t('themes.light'), Icon: SunIcon, desc: t('themes.lightDesc') },
+    { id: 'dynamic', label: t('themes.dynamic'), Icon: PaletteIcon, desc: t('themes.dynamicDesc') },
   ]
 
   return (
@@ -69,13 +72,34 @@ export function SettingsPanel({ show, onClose, use24Hour, setUse24Hour, showAnal
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className={`text-lg font-semibold ${textPrimary}`}>Settings</h2>
+          <h2 className={`text-lg font-semibold ${textPrimary}`}>{t('settings.title')}</h2>
           <button onClick={onClose} className={textMuted}><XIcon size={20} /></button>
+        </div>
+
+        {/* Language */}
+        <div className="mb-6">
+          <label className={`text-xs font-medium ${textMuted} block mb-3 uppercase tracking-wider`}>{t('settings.language')}</label>
+          <div className="grid grid-cols-2 gap-1.5">
+            {LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => changeLanguage(lang.code)}
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                  i18n.language === lang.code
+                    ? 'bg-indigo-600 text-white'
+                    : `${isDark ? 'hover:bg-white/5' : 'hover:bg-zinc-50'} ${textPrimary}`
+                }`}
+              >
+                <span className="text-base">{lang.flag}</span>
+                <span className="font-medium truncate">{lang.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Theme */}
         <div className="mb-6">
-          <label className={`text-xs font-medium ${textMuted} block mb-3 uppercase tracking-wider`}>Theme</label>
+          <label className={`text-xs font-medium ${textMuted} block mb-3 uppercase tracking-wider`}>{t('settings.theme')}</label>
           <div className="space-y-2">
             {themes.map(({ id, label, Icon, desc }) => (
               <button
@@ -99,21 +123,21 @@ export function SettingsPanel({ show, onClose, use24Hour, setUse24Hour, showAnal
 
         {/* Display */}
         <div className="mb-6">
-          <label className={`text-xs font-medium ${textMuted} block mb-3 uppercase tracking-wider`}>Display</label>
+          <label className={`text-xs font-medium ${textMuted} block mb-3 uppercase tracking-wider`}>{t('settings.display')}</label>
           <div className="space-y-3">
-            <Toggle label="24-Hour Format" desc="Use 24-hour time display" value={use24Hour} onChange={setUse24Hour} isDark={isDark} textPrimary={textPrimary} textMuted={textMuted} border={border} />
-            <Toggle label="Analog Clock" desc="Show analog clock face on main view" value={showAnalog} onChange={setShowAnalog} isDark={isDark} textPrimary={textPrimary} textMuted={textMuted} border={border} />
-            <Toggle label="Show Seconds" desc="Display seconds on world clock cards" value={showSeconds} onChange={setShowSeconds} isDark={isDark} textPrimary={textPrimary} textMuted={textMuted} border={border} />
+            <Toggle label={t('settings.format24h')} desc={t('settings.format24hDesc')} value={use24Hour} onChange={setUse24Hour} isDark={isDark} textPrimary={textPrimary} textMuted={textMuted} border={border} />
+            <Toggle label={t('settings.analogClock')} desc={t('settings.analogClockDesc')} value={showAnalog} onChange={setShowAnalog} isDark={isDark} textPrimary={textPrimary} textMuted={textMuted} border={border} />
+            <Toggle label={t('settings.showSeconds')} desc={t('settings.showSecondsDesc')} value={showSeconds} onChange={setShowSeconds} isDark={isDark} textPrimary={textPrimary} textMuted={textMuted} border={border} />
           </div>
         </div>
 
         {/* Keyboard Shortcuts */}
         <div className="mb-6">
-          <label className={`text-xs font-medium ${textMuted} block mb-3 uppercase tracking-wider`}>Keyboard Shortcuts</label>
+          <label className={`text-xs font-medium ${textMuted} block mb-3 uppercase tracking-wider`}>{t('settings.shortcuts')}</label>
           <div className={`space-y-1.5 text-sm ${textSecondary}`}>
             {[
-              ['1', 'Clock'], ['2', 'Alarm'], ['3', 'Timer'], ['4', 'Stopwatch'],
-              ['F', 'Fullscreen'], ['T', 'Cycle theme'],
+              ['1', t('settings.clockView')], ['2', t('settings.alarmView')], ['3', t('settings.timerView')], ['4', t('settings.stopwatchView')],
+              ['F', t('settings.toggleFullscreen')], ['T', t('settings.cycleTheme')],
             ].map(([key, action]) => (
               <div key={key} className="flex items-center justify-between px-3 py-1.5">
                 <span>{action}</span>
@@ -125,20 +149,20 @@ export function SettingsPanel({ show, onClose, use24Hour, setUse24Hour, showAnal
 
         {/* Data */}
         <div className="mb-4">
-          <label className={`text-xs font-medium ${textMuted} block mb-3 uppercase tracking-wider`}>Data</label>
+          <label className={`text-xs font-medium ${textMuted} block mb-3 uppercase tracking-wider`}>{t('settings.data')}</label>
           <div className="flex gap-2">
             <button
               onClick={exportData}
               className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium border ${border} ${textSecondary} hover:text-indigo-500 transition-all flex items-center justify-center gap-2`}
             >
               <DownloadIcon size={16} />
-              Export Backup
+              {t('settings.exportBackup')}
             </button>
             <button
               onClick={importData}
               className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium border ${border} ${textSecondary} hover:text-indigo-500 transition-all flex items-center justify-center gap-2`}
             >
-              Import Backup
+              {t('settings.importBackup')}
             </button>
           </div>
         </div>
@@ -152,12 +176,11 @@ export function SettingsPanel({ show, onClose, use24Hour, setUse24Hour, showAnal
             className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border ${border} ${textSecondary} hover:text-indigo-500 hover:border-indigo-500/50 transition-all`}
           >
             <GitHubIcon size={18} />
-            Star on GitHub
+            {t('settings.starOnGithub')}
             <StarIcon size={14} />
           </a>
           <p className={`text-[10px] ${textMuted} mt-3 flex items-center justify-center gap-1`}>
-            Interval v1.0 — Built with <HeartIcon size={10} className="text-red-400" /> by
-            <a href="https://github.com/achrafthedev" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-500 transition-colors">achrafthedev</a>
+            {t('settings.version')}
           </p>
         </div>
       </div>
@@ -182,7 +205,7 @@ function Toggle({ label, desc, value, onChange, isDark, textPrimary, textMuted, 
         }`}
       >
         <span className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all shadow ${
-          value ? 'left-6' : 'left-1'
+          value ? 'ltr:left-6 rtl:right-6' : 'ltr:left-1 rtl:right-1'
         }`} />
       </button>
     </div>

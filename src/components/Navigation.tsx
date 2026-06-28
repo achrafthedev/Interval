@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { View, Theme } from '../types'
 import { useTheme } from './ThemeProvider'
 import { ClockIcon, AlarmIcon, TimerIcon, StopwatchIcon, SunIcon, MoonIcon, PaletteIcon, SettingsIcon, MaximizeIcon, ScreenIcon, GitHubIcon, HeartIcon, GlobeIcon, ChevronRightIcon } from './Icons'
@@ -11,52 +12,53 @@ interface Props {
   onFullscreen: () => void
 }
 
-interface NavItem { id: View; label: string; Icon: typeof ClockIcon }
+interface NavItem { id: View; tKey: string; Icon: typeof ClockIcon }
 
-const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
+const NAV_SECTIONS: { tKey: string; items: NavItem[] }[] = [
   {
-    label: 'Clocks & Timers',
+    tKey: 'nav.clocksTimers',
     items: [
-      { id: 'clock', label: 'Clock', Icon: ClockIcon },
-      { id: 'alarm', label: 'Alarm Clock', Icon: AlarmIcon },
-      { id: 'timer', label: 'Timer', Icon: TimerIcon },
-      { id: 'stopwatch', label: 'Stopwatch', Icon: StopwatchIcon },
-      { id: 'pomodoro', label: 'Pomodoro', Icon: TimerIcon },
-      { id: 'counter', label: 'Counter', Icon: StopwatchIcon },
+      { id: 'clock', tKey: 'nav.clock', Icon: ClockIcon },
+      { id: 'alarm', tKey: 'nav.alarmClock', Icon: AlarmIcon },
+      { id: 'timer', tKey: 'nav.timer', Icon: TimerIcon },
+      { id: 'stopwatch', tKey: 'nav.stopwatch', Icon: StopwatchIcon },
+      { id: 'pomodoro', tKey: 'nav.pomodoro', Icon: TimerIcon },
+      { id: 'counter', tKey: 'nav.counter', Icon: StopwatchIcon },
     ],
   },
   {
-    label: 'Calculators',
+    tKey: 'nav.calculators',
     items: [
-      { id: 'date-calc', label: 'Date Calculator', Icon: ClockIcon },
-      { id: 'age-calc', label: 'Age Calculator', Icon: ClockIcon },
-      { id: 'hours-calc', label: 'Hours Calculator', Icon: ClockIcon },
-      { id: 'week-number', label: 'Week Number', Icon: ClockIcon },
+      { id: 'date-calc', tKey: 'nav.dateCalc', Icon: ClockIcon },
+      { id: 'age-calc', tKey: 'nav.ageCalc', Icon: ClockIcon },
+      { id: 'hours-calc', tKey: 'nav.hoursCalc', Icon: ClockIcon },
+      { id: 'week-number', tKey: 'nav.weekNumber', Icon: ClockIcon },
     ],
   },
   {
-    label: 'Converters',
+    tKey: 'nav.converters',
     items: [
-      { id: 'tz-converter', label: 'Timezone Converter', Icon: GlobeIcon },
-      { id: 'unix-time', label: 'Unix Time', Icon: ClockIcon },
+      { id: 'tz-converter', tKey: 'nav.tzConverter', Icon: GlobeIcon },
+      { id: 'unix-time', tKey: 'nav.unixTime', Icon: ClockIcon },
     ],
   },
   {
-    label: 'Sun & Moon',
+    tKey: 'nav.sunMoon',
     items: [
-      { id: 'moon-phase', label: 'Moon Phase', Icon: MoonIcon },
+      { id: 'moon-phase', tKey: 'nav.moonPhase', Icon: MoonIcon },
     ],
   },
 ]
 
 const MOBILE_MAIN: NavItem[] = [
-  { id: 'clock', label: 'Clock', Icon: ClockIcon },
-  { id: 'alarm', label: 'Alarm', Icon: AlarmIcon },
-  { id: 'timer', label: 'Timer', Icon: TimerIcon },
-  { id: 'stopwatch', label: 'Stopwatch', Icon: StopwatchIcon },
+  { id: 'clock', tKey: 'nav.clock', Icon: ClockIcon },
+  { id: 'alarm', tKey: 'nav.alarmClock', Icon: AlarmIcon },
+  { id: 'timer', tKey: 'nav.timer', Icon: TimerIcon },
+  { id: 'stopwatch', tKey: 'nav.stopwatch', Icon: StopwatchIcon },
 ]
 
 function ThemeButton({ theme, setTheme }: { theme: Theme; setTheme: (t: Theme) => void }) {
+  const { t } = useTranslation()
   const cycle = () => {
     const order: Theme[] = ['oled', 'light', 'dynamic']
     setTheme(order[(order.indexOf(theme) + 1) % order.length])
@@ -65,12 +67,13 @@ function ThemeButton({ theme, setTheme }: { theme: Theme; setTheme: (t: Theme) =
   return (
     <button onClick={cycle} className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm transition-all opacity-70 hover:opacity-100" title="Theme">
       <Icon size={18} />
-      <span className="hidden lg:inline">{theme === 'oled' ? 'OLED' : theme === 'light' ? 'Light' : 'Dynamic'}</span>
+      <span className="hidden lg:inline">{t(`themes.${theme}`)}</span>
     </button>
   )
 }
 
 export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Props) {
+  const { t } = useTranslation()
   const { theme, setTheme, textPrimary, textSecondary, textMuted, surface, border, isDark } = useTheme()
   const [wakeLockOn, setWakeLockOn] = useState(isWakeLockActive())
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -102,7 +105,7 @@ export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Prop
         }`}
       >
         <item.Icon size={compact ? 16 : 18} />
-        {item.label}
+        {t(item.tKey)}
       </button>
     )
   }
@@ -123,14 +126,14 @@ export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Prop
 
         <div className="flex-1 px-2 pb-2 space-y-3">
           {NAV_SECTIONS.map((section) => {
-            const collapsed = collapsedSections.has(section.label)
+            const collapsed = collapsedSections.has(section.tKey)
             return (
-              <div key={section.label}>
+              <div key={section.tKey}>
                 <button
-                  onClick={() => toggleSection(section.label)}
+                  onClick={() => toggleSection(section.tKey)}
                   className={`flex items-center justify-between w-full px-3 py-1.5 text-[10px] uppercase tracking-wider font-semibold ${textMuted} hover:${isDark ? 'text-white' : 'text-zinc-900'} transition-colors`}
                 >
-                  {section.label}
+                  {t(section.tKey)}
                   <ChevronRightIcon size={12} className={`transition-transform ${collapsed ? '' : 'rotate-90'}`} />
                 </button>
                 {!collapsed && (
@@ -146,12 +149,12 @@ export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Prop
           <div>
             <button onClick={() => toggleSection('legal')}
               className={`flex items-center justify-between w-full px-3 py-1.5 text-[10px] uppercase tracking-wider font-semibold ${textMuted}`}>
-              Legal
+              {t('nav.legal')}
               <ChevronRightIcon size={12} className={`transition-transform ${collapsedSections.has('legal') ? '' : 'rotate-90'}`} />
             </button>
             {!collapsedSections.has('legal') && (
               <div className="mt-0.5 space-y-0.5">
-                {navButton({ id: 'legal', label: 'About / Privacy / Terms', Icon: SettingsIcon })}
+                {navButton({ id: 'legal', tKey: 'nav.legalPage', Icon: SettingsIcon })}
               </div>
             )}
           </div>
@@ -160,15 +163,15 @@ export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Prop
         <div className={`px-2 py-3 border-t ${border} space-y-0.5`}>
           {isWakeLockSupported() && (
             <button onClick={toggleWakeLock} className={`flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm transition-all ${wakeLockOn ? 'text-green-400' : `${textSecondary} opacity-70 hover:opacity-100`}`}>
-              <ScreenIcon size={18} /><span className="hidden lg:inline">{wakeLockOn ? 'Screen On' : 'Keep Awake'}</span>
+              <ScreenIcon size={18} /><span className="hidden lg:inline">{wakeLockOn ? t('common.screenOn') : t('common.keepAwake')}</span>
             </button>
           )}
           <button onClick={onFullscreen} className={`flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm transition-all ${textSecondary} opacity-70 hover:opacity-100`}>
-            <MaximizeIcon size={18} /><span className="hidden lg:inline">Fullscreen</span>
+            <MaximizeIcon size={18} /><span className="hidden lg:inline">{t('common.fullscreen')}</span>
           </button>
           <ThemeButton theme={theme} setTheme={setTheme} />
           <button onClick={onSettingsOpen} className={`flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm transition-all ${textSecondary} opacity-70 hover:opacity-100`}>
-            <SettingsIcon size={18} /><span className="hidden lg:inline">Settings</span>
+            <SettingsIcon size={18} /><span className="hidden lg:inline">{t('common.settings')}</span>
           </button>
         </div>
 
@@ -176,7 +179,7 @@ export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Prop
           <a href="https://github.com/achrafthedev/Interval" target="_blank" rel="noopener noreferrer"
             className={`group flex items-center gap-2 px-3 py-2 rounded-xl text-xs transition-all ${textMuted} hover:text-indigo-500`}>
             <GitHubIcon size={16} className="opacity-50 group-hover:opacity-100 transition-opacity" />
-            <span className="hidden lg:flex items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">Open Source <HeartIcon size={12} className="text-red-400" /></span>
+            <span className="hidden lg:flex items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">{t('common.openSource')} <HeartIcon size={12} className="text-red-400" /></span>
           </a>
         </div>
       </nav>
@@ -190,13 +193,13 @@ export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Prop
             return (
               <button key={item.id} onClick={() => setView(item.id)}
                 className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-xs font-medium transition-all ${active ? 'text-indigo-500' : `${textSecondary} opacity-60`}`}>
-                <item.Icon size={20} /><span>{item.label}</span>
+                <item.Icon size={20} /><span>{t(item.tKey)}</span>
               </button>
             )
           })}
           <button onClick={() => setMobileMenuOpen(true)}
             className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-xs font-medium transition-all ${isToolView ? 'text-indigo-500' : `${textSecondary} opacity-60`}`}>
-            <SettingsIcon size={20} /><span>More</span>
+            <SettingsIcon size={20} /><span>{t('common.more')}</span>
           </button>
         </div>
       </nav>
@@ -207,19 +210,19 @@ export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Prop
           <div className={`absolute bottom-0 left-0 right-0 max-h-[80vh] overflow-y-auto ${isDark ? 'bg-zinc-900' : 'bg-white'} rounded-t-3xl p-6 animate-slide-up`}
             onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className={`text-lg font-semibold ${textPrimary}`}>All Tools</h2>
+              <h2 className={`text-lg font-semibold ${textPrimary}`}>{t('nav.allTools')}</h2>
               <button onClick={() => setMobileMenuOpen(false)} className={textMuted}>&times;</button>
             </div>
             <div className="space-y-4">
               {NAV_SECTIONS.map((section) => (
-                <div key={section.label}>
-                  <p className={`text-[10px] uppercase tracking-wider font-semibold ${textMuted} px-3 mb-1`}>{section.label}</p>
+                <div key={section.tKey}>
+                  <p className={`text-[10px] uppercase tracking-wider font-semibold ${textMuted} px-3 mb-1`}>{t(section.tKey)}</p>
                   <div className="space-y-0.5">{section.items.map((item) => navButton(item, true))}</div>
                 </div>
               ))}
               <div>
-                <p className={`text-[10px] uppercase tracking-wider font-semibold ${textMuted} px-3 mb-1`}>Legal</p>
-                {navButton({ id: 'legal', label: 'About / Privacy / Terms', Icon: SettingsIcon }, true)}
+                <p className={`text-[10px] uppercase tracking-wider font-semibold ${textMuted} px-3 mb-1`}>{t('nav.legal')}</p>
+                {navButton({ id: 'legal', tKey: 'nav.legalPage', Icon: SettingsIcon }, true)}
               </div>
             </div>
           </div>

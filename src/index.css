@@ -65,3 +65,16 @@
 .lap-slowest {
   color: #ef4444;
 }
+
+/* RTL support */
+[dir="rtl"] .time-display {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+[dir="rtl"] input[type="time"],
+[dir="rtl"] input[type="date"],
+[dir="rtl"] input[type="datetime-local"],
+[dir="rtl"] input[type="number"] {
+  direction: ltr;
+  text-align: right;
+}
