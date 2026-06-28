@@ -1,5 +1,11 @@
 export type Theme = 'oled' | 'light' | 'dynamic'
-export type View = 'clock' | 'alarm' | 'timer' | 'stopwatch'
+export type View =
+  | 'clock' | 'alarm' | 'timer' | 'stopwatch'
+  | 'pomodoro' | 'counter' | 'countdown'
+  | 'date-calc' | 'age-calc' | 'hours-calc'
+  | 'week-number' | 'tz-converter' | 'unix-time'
+  | 'moon-phase'
+  | 'legal'
 
 export interface WorldClockZone {
   id: string

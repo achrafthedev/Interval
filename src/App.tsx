@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, lazy, Suspense } from 'react'
 import { ThemeProvider, useTheme } from './components/ThemeProvider'
 import { Navigation } from './components/Navigation'
 import { ClockView } from './components/ClockView'
@@ -10,6 +10,18 @@ import { SeoContent } from './components/SeoContent'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useDocumentTitle } from './hooks/useDocumentTitle'
+
+// Lazy-loaded tool views (code-split for performance)
+const DateCalcView = lazy(() => import('./components/tools/DateCalcView').then(m => ({ default: m.DateCalcView })))
+const AgeCalcView = lazy(() => import('./components/tools/AgeCalcView').then(m => ({ default: m.AgeCalcView })))
+const HoursCalcView = lazy(() => import('./components/tools/HoursCalcView').then(m => ({ default: m.HoursCalcView })))
+const WeekNumberView = lazy(() => import('./components/tools/WeekNumberView').then(m => ({ default: m.WeekNumberView })))
+const TzConverterView = lazy(() => import('./components/tools/TzConverterView').then(m => ({ default: m.TzConverterView })))
+const UnixTimeView = lazy(() => import('./components/tools/UnixTimeView').then(m => ({ default: m.UnixTimeView })))
+const CounterView = lazy(() => import('./components/tools/CounterView').then(m => ({ default: m.CounterView })))
+const PomodoroView = lazy(() => import('./components/tools/PomodoroView').then(m => ({ default: m.PomodoroView })))
+const MoonPhaseView = lazy(() => import('./components/tools/MoonPhaseView').then(m => ({ default: m.MoonPhaseView })))
+const LegalView = lazy(() => import('./components/tools/LegalView').then(m => ({ default: m.LegalView })))
 import { requestNotificationPermission } from './utils/notifications'
 import { requestWakeLock } from './utils/wakelock'
 import type { View, Theme, WorldClockZone, Alarm, TimerInstance, StopwatchState } from './types'
@@ -139,6 +151,8 @@ function AppShell({
   useDocumentTitle(view, timers, stopwatch)
 
   const renderView = useCallback(() => {
+    const lazyFallback = <div className="flex items-center justify-center h-full opacity-50">Loading...</div>
+
     switch (view) {
       case 'clock':
         return (
@@ -165,6 +179,28 @@ function AppShell({
             setTtsEnabled={setTtsEnabled}
           />
         )
+      case 'pomodoro':
+        return <Suspense fallback={lazyFallback}><PomodoroView /></Suspense>
+      case 'counter':
+        return <Suspense fallback={lazyFallback}><CounterView /></Suspense>
+      case 'date-calc':
+        return <Suspense fallback={lazyFallback}><DateCalcView /></Suspense>
+      case 'age-calc':
+        return <Suspense fallback={lazyFallback}><AgeCalcView /></Suspense>
+      case 'hours-calc':
+        return <Suspense fallback={lazyFallback}><HoursCalcView /></Suspense>
+      case 'week-number':
+        return <Suspense fallback={lazyFallback}><WeekNumberView /></Suspense>
+      case 'tz-converter':
+        return <Suspense fallback={lazyFallback}><TzConverterView /></Suspense>
+      case 'unix-time':
+        return <Suspense fallback={lazyFallback}><UnixTimeView /></Suspense>
+      case 'moon-phase':
+        return <Suspense fallback={lazyFallback}><MoonPhaseView /></Suspense>
+      case 'legal':
+        return <Suspense fallback={lazyFallback}><LegalView /></Suspense>
+      default:
+        return <Suspense fallback={lazyFallback}><DateCalcView /></Suspense>
     }
   }, [view, worldClocks, alarms, timers, stopwatch, use24Hour, ttsEnabled, showAnalog, countdownTarget])
 

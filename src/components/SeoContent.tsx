@@ -8,6 +8,9 @@ interface Props {
 export function SeoContent({ view }: Props) {
   const { textPrimary, textSecondary, textMuted, border, isDark } = useTheme()
 
+  const hasContent = ['clock', 'alarm', 'timer', 'stopwatch'].includes(view)
+  if (!hasContent) return null
+
   return (
     <footer className={`w-full max-w-3xl mx-auto px-6 pt-12 pb-20 md:pb-12 ${textSecondary}`}>
       <div className={`border-t ${border} pt-10 space-y-8`}>
