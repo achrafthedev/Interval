@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { useTheme } from './ThemeProvider'
-import { useAnimationFrame } from '../hooks/useAnimationFrame'
+import { useBackgroundTimer } from '../hooks/useBackgroundTimer'
 import { formatCountdown } from '../utils/time'
 import { playTimerComplete } from '../utils/audio'
 import { sendNotification } from '../utils/notifications'
@@ -42,9 +42,10 @@ export function TimerView({ timers, setTimers }: Props) {
     setTimers(updater(timers))
   }, [timers, setTimers])
 
-  useAnimationFrame(() => {
+  useBackgroundTimer(() => {
     const now = performance.now()
     let changed = false
+    const chainNext = new Set<string>()
     const updated = timers.map((timer) => {
       if (!timer.running || timer.finished) return timer
 
@@ -62,13 +63,28 @@ export function TimerView({ timers, setTimers }: Props) {
         if (timer.loop) {
           return { ...timer, remainingMs: timer.totalSeconds * 1000 }
         }
+
+        if (timer.nextTimerId) {
+          chainNext.add(timer.nextTimerId)
+        }
         return { ...timer, remainingMs: 0, running: false, finished: true }
       }
 
       return { ...timer, remainingMs: newRemaining }
     })
 
-    if (changed) setTimers(updated)
+    if (chainNext.size > 0) {
+      const chained = updated.map((t) => {
+        if (chainNext.has(t.id) && !t.running && !t.finished) {
+          lastTickRef.current.set(t.id, now)
+          return { ...t, running: true }
+        }
+        return t
+      })
+      setTimers(chained)
+    } else if (changed) {
+      setTimers(updated)
+    }
   }, timers.some((t) => t.running))
 
   const addTimer = (label: string, seconds: number, loop: boolean = false) => {
@@ -89,7 +105,7 @@ export function TimerView({ timers, setTimers }: Props) {
   const addSequence = () => {
     const newTimers: TimerInstance[] = []
     for (let rep = 0; rep < seqRepeats; rep++) {
-      seqSteps.forEach((step, i) => {
+      seqSteps.forEach((step) => {
         newTimers.push({
           id: crypto.randomUUID(),
           label: `${seqLabel} - R${rep + 1} - ${step.label}`,
@@ -100,6 +116,10 @@ export function TimerView({ timers, setTimers }: Props) {
           loop: false,
         })
       })
+    }
+    // Link each timer to the next for auto-chaining
+    for (let i = 0; i < newTimers.length - 1; i++) {
+      newTimers[i].nextTimerId = newTimers[i + 1].id
     }
     setTimers([...timers, ...newTimers])
     setShowSequence(false)
@@ -226,6 +246,11 @@ export function TimerView({ timers, setTimers }: Props) {
                     {timer.loop && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400">
                         Loop
+                      </span>
+                    )}
+                    {timer.nextTimerId && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
+                        Chained
                       </span>
                     )}
                     {timer.finished && (

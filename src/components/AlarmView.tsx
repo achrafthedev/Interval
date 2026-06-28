@@ -30,10 +30,11 @@ export function AlarmView({ alarms, setAlarms }: Props) {
   const [ringingAlarmId, setRingingAlarmId] = useState<string | null>(null)
   const firedRef = useRef<Set<string>>(new Set())
 
-  // Alarm checker
-  useEffect(() => {
-    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-    const dayIndex = (now.getDay() + 6) % 7
+  const checkAlarms = useRef(() => {})
+  checkAlarms.current = () => {
+    const d = new Date()
+    const currentTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+    const dayIndex = (d.getDay() + 6) % 7
     const dayKey = DAYS[dayIndex]
 
     alarms.forEach((alarm) => {
@@ -56,7 +57,18 @@ export function AlarmView({ alarms, setAlarms }: Props) {
 
       sendNotification('Interval Alarm', alarm.label || `Alarm - ${alarm.time}`)
     })
+  }
+
+  // Check alarms on every render tick (foreground)
+  useEffect(() => {
+    checkAlarms.current()
   }, [now.getMinutes(), alarms])
+
+  // Background interval so alarms still fire when tab is hidden
+  useEffect(() => {
+    const id = setInterval(() => checkAlarms.current(), 5000)
+    return () => clearInterval(id)
+  }, [])
 
   useEffect(() => {
     requestNotificationPermission()

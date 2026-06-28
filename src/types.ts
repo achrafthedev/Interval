@@ -32,6 +32,7 @@ export interface TimerInstance {
   running: boolean
   finished: boolean
   loop: boolean
+  nextTimerId?: string // for sequence chaining — auto-starts this timer when current finishes
 }
 
 export interface TimerSequenceStep {

@@ -153,6 +153,30 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour }: Props) {
         </div>
       )}
 
+      {/* Zone-to-Zone Distance Calculator */}
+      {zones.length >= 2 && (
+        <div className={`w-full max-w-2xl mt-6 p-5 rounded-2xl border ${border} ${surface} animate-fade-in`}>
+          <h3 className={`text-sm font-semibold ${textPrimary} mb-3`}>Time Distances</h3>
+          <div className="space-y-1.5">
+            {zones.map((a, i) =>
+              zones.slice(i + 1).map((b) => {
+                const delta = getTimeDelta(a.timezone, b.timezone)
+                return (
+                  <div key={`${a.id}-${b.id}`} className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm ${isDark ? 'bg-white/5' : 'bg-zinc-50'}`}>
+                    <span className={textSecondary}>
+                      <span className={`font-medium ${textPrimary}`}>{a.label}</span>
+                      {' vs '}
+                      <span className={`font-medium ${textPrimary}`}>{b.label}</span>
+                    </span>
+                    <span className={`text-xs font-medium ${textMuted}`}>{delta}</span>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Empty State */}
       {zones.length === 0 && (
         <div className={`text-center mt-8 ${textMuted}`}>

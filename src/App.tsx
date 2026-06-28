@@ -6,6 +6,7 @@ import { AlarmView } from './components/AlarmView'
 import { TimerView } from './components/TimerView'
 import { StopwatchView } from './components/StopwatchView'
 import { useLocalStorage } from './hooks/useLocalStorage'
+import { requestNotificationPermission } from './utils/notifications'
 import type { View, Theme, WorldClockZone, Alarm, TimerInstance, StopwatchState } from './types'
 
 const DEFAULT_STOPWATCH: StopwatchState = {
@@ -32,6 +33,7 @@ export function App() {
     if (urlView && ['clock', 'alarm', 'timer', 'stopwatch'].includes(urlView)) {
       setView(urlView)
     }
+    requestNotificationPermission()
   }, [])
 
   return (
