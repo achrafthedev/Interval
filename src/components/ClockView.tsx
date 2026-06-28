@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useTheme } from './ThemeProvider'
 import { useTime } from '../hooks/useTime'
 import { AnalogClock } from './AnalogClock'
-import { formatTime, formatDate, formatTimeNoSeconds, getTimezoneOffsetLabel, getTimeDelta, COMMON_TIMEZONES } from '../utils/time'
+import { formatTime, formatDate, formatTimeNoSeconds, getTimezoneOffsetLabel, getTimeDelta, ALL_TIMEZONES } from '../utils/time'
 import { getGeolocation, getSunTimes, type GeoLocation } from '../utils/geolocation'
 import { PlusIcon, TrashIcon, GlobeIcon, XIcon, SliderIcon, SunIcon, MoonIcon } from './Icons'
 import type { WorldClockZone } from '../types'
@@ -62,12 +62,15 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
   }, [geoLocation])
 
   const filteredTimezones = useMemo(() => {
+    const available = ALL_TIMEZONES.filter((tz) => !zones.some((z) => z.timezone === tz.timezone))
+    if (!search.trim()) return available.slice(0, 50)
     const q = search.toLowerCase()
-    return COMMON_TIMEZONES.filter(
+    return available.filter(
       (tz) =>
         tz.label.toLowerCase().includes(q) ||
-        tz.timezone.toLowerCase().includes(q)
-    ).filter((tz) => !zones.some((z) => z.timezone === tz.timezone))
+        tz.timezone.toLowerCase().includes(q) ||
+        tz.region.toLowerCase().includes(q)
+    ).slice(0, 80)
   }, [search, zones])
 
   const addZone = (label: string, timezone: string) => {
@@ -324,17 +327,23 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
               autoFocus
               className={`w-full px-4 py-3 rounded-xl border ${border} ${isDark ? 'bg-zinc-800 text-white' : 'bg-zinc-50 text-zinc-900'} text-sm mb-3 outline-none focus:ring-2 focus:ring-indigo-500`}
             />
-            <div className="overflow-y-auto max-h-[45vh] space-y-1">
+            <div className="overflow-y-auto max-h-[45vh] space-y-0.5">
               {filteredTimezones.map((tz) => (
                 <button
                   key={tz.timezone}
                   onClick={() => addZone(tz.label, tz.timezone)}
-                  className={`w-full text-left flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-all ${isDark ? 'hover:bg-white/10' : 'hover:bg-zinc-100'} ${textPrimary}`}
+                  className={`w-full text-left flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl text-sm transition-all ${isDark ? 'hover:bg-white/10' : 'hover:bg-zinc-100'} ${textPrimary}`}
                 >
-                  <span className="font-medium">{tz.label}</span>
-                  <span className={`text-xs ${textMuted}`}>{tz.timezone}</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-medium truncate">{tz.label}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md shrink-0 ${isDark ? 'bg-white/5' : 'bg-zinc-100'} ${textMuted}`}>{tz.region}</span>
+                  </div>
+                  <span className={`text-xs shrink-0 ${textMuted}`}>{getTimezoneOffsetLabel(tz.timezone)}</span>
                 </button>
               ))}
+              {filteredTimezones.length === 0 && (
+                <p className={`text-center py-6 text-sm ${textMuted}`}>No timezones match "{search}"</p>
+              )}
             </div>
           </div>
         </div>

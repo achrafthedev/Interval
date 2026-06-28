@@ -106,7 +106,54 @@ export function getTimeDelta(tz1: string, tz2: string): string {
   return delta > 0 ? `${timeStr} ahead` : `${timeStr} behind`
 }
 
-export const COMMON_TIMEZONES = [
+const LABEL_OVERRIDES: Record<string, string> = {
+  'America/New_York': 'New York',
+  'America/Los_Angeles': 'Los Angeles',
+  'America/Sao_Paulo': 'São Paulo',
+  'America/Buenos_Aires': 'Buenos Aires',
+  'America/Mexico_City': 'Mexico City',
+  'America/Costa_Rica': 'Costa Rica',
+  'America/El_Salvador': 'El Salvador',
+  'America/Port-au-Prince': 'Port-au-Prince',
+  'America/Port_of_Spain': 'Port of Spain',
+  'Asia/Ho_Chi_Minh': 'Ho Chi Minh City',
+  'Asia/Hong_Kong': 'Hong Kong',
+  'Asia/Kuala_Lumpur': 'Kuala Lumpur',
+  'Asia/Kolkata': 'Mumbai / Kolkata',
+  'Pacific/Port_Moresby': 'Port Moresby',
+  'Africa/Dar_es_Salaam': 'Dar es Salaam',
+  'Africa/Addis_Ababa': 'Addis Ababa',
+}
+
+function timezoneToLabel(tz: string): string {
+  if (LABEL_OVERRIDES[tz]) return LABEL_OVERRIDES[tz]
+  const city = tz.split('/').pop() || tz
+  return city.replace(/_/g, ' ')
+}
+
+function timezoneToRegion(tz: string): string {
+  const parts = tz.split('/')
+  return parts[0].replace(/_/g, ' ')
+}
+
+function getAllTimezones(): { label: string; timezone: string; region: string }[] {
+  try {
+    const zones = (Intl as any).supportedValuesOf('timeZone') as string[]
+    return zones.map((tz: string) => ({
+      label: timezoneToLabel(tz),
+      timezone: tz,
+      region: timezoneToRegion(tz),
+    }))
+  } catch {
+    return FALLBACK_TIMEZONES.map((tz) => ({
+      label: timezoneToLabel(tz.timezone),
+      timezone: tz.timezone,
+      region: timezoneToRegion(tz.timezone),
+    }))
+  }
+}
+
+const FALLBACK_TIMEZONES = [
   { label: 'New York', timezone: 'America/New_York' },
   { label: 'Los Angeles', timezone: 'America/Los_Angeles' },
   { label: 'Chicago', timezone: 'America/Chicago' },
@@ -128,6 +175,8 @@ export const COMMON_TIMEZONES = [
   { label: 'Hong Kong', timezone: 'Asia/Hong_Kong' },
   { label: 'Seoul', timezone: 'Asia/Seoul' },
 ]
+
+export const ALL_TIMEZONES = getAllTimezones()
 
 export function getDynamicGradient(date: Date): string {
   const hours = date.getHours()
