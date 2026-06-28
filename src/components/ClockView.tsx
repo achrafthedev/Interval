@@ -255,7 +255,7 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
       )}
 
       {/* Meeting Planner Slider */}
-      {showPlanner && zones.length > 0 && (
+      {showPlanner && (
         <div className={`w-full max-w-2xl mb-6 p-5 rounded-2xl border ${border} ${surface} animate-slide-up`}>
           <div className="flex items-center justify-between mb-3">
             <h3 className={`text-sm font-semibold ${textPrimary}`}>{t('clock.timeSlider')}</h3>
@@ -287,6 +287,12 @@ export function ClockView({ zones, setZones, use24Hour, setUse24Hour, showAnalog
                 </span>
               </div>
             ))}
+            {zones.length === 0 && (
+              <button onClick={() => setShowAdd(true)} className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg border border-dashed ${border} ${textMuted} hover:text-indigo-500 hover:border-indigo-500/50 transition-all text-sm`}>
+                <PlusIcon size={14} />
+                {t('clock.addCity')}
+              </button>
+            )}
           </div>
         </div>
       )}
