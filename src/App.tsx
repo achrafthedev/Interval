@@ -1,12 +1,16 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ThemeProvider, useTheme } from './components/ThemeProvider'
 import { Navigation } from './components/Navigation'
 import { ClockView } from './components/ClockView'
 import { AlarmView } from './components/AlarmView'
 import { TimerView } from './components/TimerView'
 import { StopwatchView } from './components/StopwatchView'
+import { SettingsPanel } from './components/SettingsPanel'
 import { useLocalStorage } from './hooks/useLocalStorage'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useDocumentTitle } from './hooks/useDocumentTitle'
 import { requestNotificationPermission } from './utils/notifications'
+import { requestWakeLock } from './utils/wakelock'
 import type { View, Theme, WorldClockZone, Alarm, TimerInstance, StopwatchState } from './types'
 
 const DEFAULT_STOPWATCH: StopwatchState = {
@@ -22,10 +26,13 @@ export function App() {
   const [view, setView] = useLocalStorage<View>('interval-view', 'clock')
   const [use24Hour, setUse24Hour] = useLocalStorage('interval-24h', false)
   const [ttsEnabled, setTtsEnabled] = useLocalStorage('interval-tts', false)
+  const [showAnalog, setShowAnalog] = useLocalStorage('interval-analog', false)
+  const [showSeconds, setShowSeconds] = useLocalStorage('interval-show-seconds', true)
   const [worldClocks, setWorldClocks] = useLocalStorage<WorldClockZone[]>('interval-zones', [])
   const [alarms, setAlarms] = useLocalStorage<Alarm[]>('interval-alarms', [])
   const [timers, setTimers] = useLocalStorage<TimerInstance[]>('interval-timers', [])
   const [stopwatch, setStopwatch] = useLocalStorage<StopwatchState>('interval-stopwatch', DEFAULT_STOPWATCH)
+  const [countdownTarget, setCountdownTarget] = useLocalStorage('interval-countdown-target', '')
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -36,15 +43,27 @@ export function App() {
     requestNotificationPermission()
   }, [])
 
+  // Auto wake lock when timers or stopwatch are running
+  useEffect(() => {
+    const hasActive = timers.some((t) => t.running) || stopwatch.running
+    if (hasActive) requestWakeLock()
+  }, [timers.some((t) => t.running), stopwatch.running])
+
   return (
     <ThemeProvider theme={theme} setTheme={setTheme}>
       <AppShell
         view={view}
         setView={setView}
+        theme={theme}
+        setTheme={setTheme}
         worldClocks={worldClocks}
         setWorldClocks={setWorldClocks}
         use24Hour={use24Hour}
         setUse24Hour={setUse24Hour}
+        showAnalog={showAnalog}
+        setShowAnalog={setShowAnalog}
+        showSeconds={showSeconds}
+        setShowSeconds={setShowSeconds}
         alarms={alarms}
         setAlarms={setAlarms}
         timers={timers}
@@ -53,6 +72,8 @@ export function App() {
         setStopwatch={setStopwatch}
         ttsEnabled={ttsEnabled}
         setTtsEnabled={setTtsEnabled}
+        countdownTarget={countdownTarget}
+        setCountdownTarget={setCountdownTarget}
       />
     </ThemeProvider>
   )
@@ -61,10 +82,16 @@ export function App() {
 interface AppShellProps {
   view: View
   setView: (v: View) => void
+  theme: Theme
+  setTheme: (t: Theme) => void
   worldClocks: WorldClockZone[]
   setWorldClocks: (z: WorldClockZone[]) => void
   use24Hour: boolean
   setUse24Hour: (v: boolean) => void
+  showAnalog: boolean
+  setShowAnalog: (v: boolean) => void
+  showSeconds: boolean
+  setShowSeconds: (v: boolean) => void
   alarms: Alarm[]
   setAlarms: (a: Alarm[]) => void
   timers: TimerInstance[]
@@ -73,18 +100,42 @@ interface AppShellProps {
   setStopwatch: (s: StopwatchState) => void
   ttsEnabled: boolean
   setTtsEnabled: (v: boolean) => void
+  countdownTarget: string
+  setCountdownTarget: (v: string) => void
 }
 
 function AppShell({
   view, setView,
+  theme, setTheme,
   worldClocks, setWorldClocks,
   use24Hour, setUse24Hour,
+  showAnalog, setShowAnalog,
+  showSeconds, setShowSeconds,
   alarms, setAlarms,
   timers, setTimers,
   stopwatch, setStopwatch,
   ttsEnabled, setTtsEnabled,
+  countdownTarget, setCountdownTarget,
 }: AppShellProps) {
   const { bgStyle } = useTheme()
+  const [showSettings, setShowSettings] = useState(false)
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    } else {
+      document.documentElement.requestFullscreen().catch(() => {})
+    }
+  }, [])
+
+  const cycleTheme = useCallback(() => {
+    const order: Theme[] = ['oled', 'light', 'dynamic']
+    const next = order[(order.indexOf(theme) + 1) % order.length]
+    setTheme(next)
+  }, [theme, setTheme])
+
+  useKeyboardShortcuts({ setView, onFullscreen: toggleFullscreen, onThemeCycle: cycleTheme })
+  useDocumentTitle(view, timers, stopwatch)
 
   const renderView = useCallback(() => {
     switch (view) {
@@ -95,6 +146,9 @@ function AppShell({
             setZones={setWorldClocks}
             use24Hour={use24Hour}
             setUse24Hour={setUse24Hour}
+            showAnalog={showAnalog}
+            countdownTarget={countdownTarget}
+            setCountdownTarget={setCountdownTarget}
           />
         )
       case 'alarm':
@@ -111,14 +165,29 @@ function AppShell({
           />
         )
     }
-  }, [view, worldClocks, alarms, timers, stopwatch, use24Hour, ttsEnabled])
+  }, [view, worldClocks, alarms, timers, stopwatch, use24Hour, ttsEnabled, showAnalog, countdownTarget])
 
   return (
     <div className="flex h-full w-full" style={bgStyle}>
-      <Navigation view={view} setView={setView} />
+      <Navigation
+        view={view}
+        setView={setView}
+        onSettingsOpen={() => setShowSettings(true)}
+        onFullscreen={toggleFullscreen}
+      />
       <main className="flex-1 min-w-0 overflow-hidden">
         {renderView()}
       </main>
+      <SettingsPanel
+        show={showSettings}
+        onClose={() => setShowSettings(false)}
+        use24Hour={use24Hour}
+        setUse24Hour={setUse24Hour}
+        showAnalog={showAnalog}
+        setShowAnalog={setShowAnalog}
+        showSeconds={showSeconds}
+        setShowSeconds={setShowSeconds}
+      />
     </div>
   )
 }

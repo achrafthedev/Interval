@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react'
 import { useTheme } from './ThemeProvider'
 import { useBackgroundTimer } from '../hooks/useBackgroundTimer'
 import { formatCountdown } from '../utils/time'
-import { playTimerComplete } from '../utils/audio'
+import { playTimerCompletionSound } from '../utils/sounds'
 import { sendNotification } from '../utils/notifications'
 import { isPiPSupported, startPiP, stopPiP, isPiPActive } from '../utils/pip'
 import { PlusIcon, PlayIcon, PauseIcon, ResetIcon, TrashIcon, XIcon, RepeatIcon, PipIcon } from './Icons'
@@ -57,7 +57,8 @@ export function TimerView({ timers, setTimers }: Props) {
       changed = true
 
       if (newRemaining <= 0) {
-        playTimerComplete()
+        playTimerCompletionSound()
+        if ('vibrate' in navigator) navigator.vibrate([200, 100, 200, 100, 400])
         sendNotification('Timer Complete', timer.label || 'Your timer has finished!')
 
         if (timer.loop) {

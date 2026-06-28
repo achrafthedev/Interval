@@ -16,6 +16,7 @@ export interface Alarm {
   smartWake: boolean
   soundUrl: string
   soundName: string
+  soundId: string
 }
 
 export interface TimerPreset {

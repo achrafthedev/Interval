@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTheme } from './ThemeProvider'
 import { useTime } from '../hooks/useTime'
-import { PlusIcon, TrashIcon, VolumeIcon, XIcon } from './Icons'
-import { playAlarmPattern, playCustomAudio, stopCustomAudio } from '../utils/audio'
+import { PlusIcon, TrashIcon, VolumeIcon, XIcon, PlayIcon, PauseIcon } from './Icons'
+import { SOUND_LIBRARY, getSoundById, type SoundHandle } from '../utils/sounds'
+import { playCustomAudio, stopCustomAudio } from '../utils/audio'
 import { sendNotification, requestNotificationPermission } from '../utils/notifications'
 import type { Alarm } from '../types'
 
@@ -11,11 +12,7 @@ const DAY_LABELS: Record<string, string> = {
   mon: 'M', tue: 'T', wed: 'W', thu: 'T', fri: 'F', sat: 'S', sun: 'S',
 }
 
-const BUILT_IN_SOUNDS = [
-  { name: 'Gentle Chime', url: '' },
-  { name: 'Digital Beep', url: '' },
-  { name: 'Morning Bell', url: '' },
-]
+const SNOOZE_MINUTES = 5
 
 interface Props {
   alarms: Alarm[]
@@ -28,7 +25,11 @@ export function AlarmView({ alarms, setAlarms }: Props) {
   const [showAdd, setShowAdd] = useState(false)
   const [editAlarm, setEditAlarm] = useState<Alarm | null>(null)
   const [ringingAlarmId, setRingingAlarmId] = useState<string | null>(null)
+  const [previewHandle, setPreviewHandle] = useState<SoundHandle | null>(null)
+  const [previewingId, setPreviewingId] = useState<string | null>(null)
   const firedRef = useRef<Set<string>>(new Set())
+  const activeHandleRef = useRef<SoundHandle | null>(null)
+  const snoozeTimers = useRef<Map<string, number>>(new Map())
 
   const checkAlarms = useRef(() => {})
   checkAlarms.current = () => {
@@ -47,24 +48,34 @@ export function AlarmView({ alarms, setAlarms }: Props) {
       if (alarm.repeat.length > 0 && !alarm.repeat.includes(dayKey)) return
 
       firedRef.current.add(alarm.id)
-      setRingingAlarmId(alarm.id)
-
-      if (alarm.soundUrl) {
-        playCustomAudio(alarm.soundUrl, alarm.smartWake)
-      } else {
-        playAlarmPattern(alarm.smartWake)
-      }
-
-      sendNotification('Interval Alarm', alarm.label || `Alarm - ${alarm.time}`)
+      triggerAlarm(alarm)
     })
   }
 
-  // Check alarms on every render tick (foreground)
+  function triggerAlarm(alarm: Alarm) {
+    setRingingAlarmId(alarm.id)
+
+    if (alarm.soundUrl) {
+      playCustomAudio(alarm.soundUrl, alarm.smartWake)
+    } else {
+      const sound = getSoundById(alarm.soundId || 'gentle-chime')
+      if (sound) {
+        activeHandleRef.current = sound.play({ smartWake: alarm.smartWake, volume: 0.7 })
+      }
+    }
+
+    // Vibrate on mobile
+    if ('vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200, 100, 400])
+    }
+
+    sendNotification('Interval Alarm', alarm.label || `Alarm - ${alarm.time}`)
+  }
+
   useEffect(() => {
     checkAlarms.current()
   }, [now.getMinutes(), alarms])
 
-  // Background interval so alarms still fire when tab is hidden
   useEffect(() => {
     const id = setInterval(() => checkAlarms.current(), 5000)
     return () => clearInterval(id)
@@ -76,7 +87,51 @@ export function AlarmView({ alarms, setAlarms }: Props) {
 
   const dismissAlarm = () => {
     stopCustomAudio()
+    activeHandleRef.current?.stop()
+    activeHandleRef.current = null
+    if ('vibrate' in navigator) navigator.vibrate(0)
     setRingingAlarmId(null)
+  }
+
+  const snoozeAlarm = () => {
+    const alarmId = ringingAlarmId
+    dismissAlarm()
+
+    if (alarmId) {
+      const timeout = window.setTimeout(() => {
+        const alarm = alarms.find((a) => a.id === alarmId)
+        if (alarm) triggerAlarm(alarm)
+        snoozeTimers.current.delete(alarmId)
+      }, SNOOZE_MINUTES * 60 * 1000)
+      snoozeTimers.current.set(alarmId, timeout)
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      snoozeTimers.current.forEach((t) => clearTimeout(t))
+    }
+  }, [])
+
+  const previewSound = (soundId: string) => {
+    if (previewingId === soundId) {
+      previewHandle?.stop()
+      setPreviewHandle(null)
+      setPreviewingId(null)
+      return
+    }
+
+    previewHandle?.stop()
+    const sound = getSoundById(soundId)
+    if (sound) {
+      const handle = sound.play({ volume: 0.4 })
+      setPreviewHandle(handle)
+      setPreviewingId(soundId)
+      setTimeout(() => {
+        handle.stop()
+        setPreviewingId((cur) => cur === soundId ? null : cur)
+      }, 3000)
+    }
   }
 
   const createAlarm = (): Alarm => ({
@@ -88,9 +143,12 @@ export function AlarmView({ alarms, setAlarms }: Props) {
     smartWake: false,
     soundUrl: '',
     soundName: 'Gentle Chime',
+    soundId: 'gentle-chime',
   })
 
   const saveAlarm = (alarm: Alarm) => {
+    previewHandle?.stop()
+    setPreviewingId(null)
     const exists = alarms.find((a) => a.id === alarm.id)
     if (exists) {
       setAlarms(alarms.map((a) => (a.id === alarm.id ? alarm : a)))
@@ -133,12 +191,20 @@ export function AlarmView({ alarms, setAlarms }: Props) {
             <p className="text-sm opacity-80 mb-4">
               {alarms.find((a) => a.id === ringingAlarmId)?.time}
             </p>
-            <button
-              onClick={dismissAlarm}
-              className="px-8 py-3 rounded-xl bg-white text-indigo-600 font-semibold hover:bg-zinc-100 transition-all"
-            >
-              Dismiss
-            </button>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={snoozeAlarm}
+                className="px-6 py-3 rounded-xl bg-white/20 text-white font-semibold hover:bg-white/30 transition-all"
+              >
+                Snooze ({SNOOZE_MINUTES}m)
+              </button>
+              <button
+                onClick={dismissAlarm}
+                className="px-8 py-3 rounded-xl bg-white text-indigo-600 font-semibold hover:bg-zinc-100 transition-all"
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
         )}
 
@@ -181,6 +247,9 @@ export function AlarmView({ alarms, setAlarms }: Props) {
                   {alarm.smartWake && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">Smart Wake</span>
                   )}
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${isDark ? 'bg-white/5' : 'bg-zinc-100'} ${textMuted}`}>
+                    {getSoundById(alarm.soundId || 'gentle-chime')?.name || alarm.soundName}
+                  </span>
                 </div>
               </button>
 
@@ -217,16 +286,16 @@ export function AlarmView({ alarms, setAlarms }: Props) {
 
       {/* Edit/Add Modal */}
       {showAdd && editAlarm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowAdd(false)}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => { previewHandle?.stop(); setShowAdd(false) }}>
           <div
-            className={`w-full sm:max-w-md ${isDark ? 'bg-zinc-900' : 'bg-white'} rounded-t-3xl sm:rounded-2xl p-6 animate-slide-up`}
+            className={`w-full sm:max-w-md max-h-[85vh] overflow-y-auto ${isDark ? 'bg-zinc-900' : 'bg-white'} rounded-t-3xl sm:rounded-2xl p-6 animate-slide-up`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-lg font-semibold ${textPrimary}`}>
                 {alarms.find((a) => a.id === editAlarm.id) ? 'Edit Alarm' : 'New Alarm'}
               </h2>
-              <button onClick={() => setShowAdd(false)} className={textMuted}><XIcon size={20} /></button>
+              <button onClick={() => { previewHandle?.stop(); setShowAdd(false) }} className={textMuted}><XIcon size={20} /></button>
             </div>
 
             {/* Time Picker */}
@@ -317,29 +386,50 @@ export function AlarmView({ alarms, setAlarms }: Props) {
 
             {/* Sound Selection */}
             <div className="mb-5">
-              <label className={`text-xs font-medium ${textMuted} block mb-2`}>Sound</label>
-              <div className="space-y-1.5">
-                {BUILT_IN_SOUNDS.map((sound) => (
-                  <button
-                    key={sound.name}
-                    onClick={() => setEditAlarm({ ...editAlarm, soundUrl: sound.url, soundName: sound.name })}
-                    className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all ${
-                      editAlarm.soundName === sound.name
-                        ? 'bg-indigo-600 text-white'
-                        : `${isDark ? 'hover:bg-white/5' : 'hover:bg-zinc-50'} ${textPrimary}`
-                    }`}
-                  >
-                    {sound.name}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-3">
+              <label className={`text-xs font-medium ${textMuted} block mb-2`}>Alarm Sound</label>
+              {(['gentle', 'standard', 'intense'] as const).map((category) => (
+                <div key={category} className="mb-3">
+                  <p className={`text-[10px] uppercase tracking-wider font-semibold ${textMuted} mb-1.5`}>{category}</p>
+                  <div className="space-y-1">
+                    {SOUND_LIBRARY.filter((s) => s.category === category).map((sound) => {
+                      const selected = (editAlarm.soundId || 'gentle-chime') === sound.id && !editAlarm.soundUrl
+                      return (
+                        <div key={sound.id} className="flex items-center gap-2">
+                          <button
+                            onClick={() => setEditAlarm({ ...editAlarm, soundId: sound.id, soundName: sound.name, soundUrl: '' })}
+                            className={`flex-1 text-left px-4 py-2.5 rounded-xl text-sm transition-all ${
+                              selected
+                                ? 'bg-indigo-600 text-white'
+                                : `${isDark ? 'hover:bg-white/5' : 'hover:bg-zinc-50'} ${textPrimary}`
+                            }`}
+                          >
+                            {sound.name}
+                          </button>
+                          <button
+                            onClick={() => previewSound(sound.id)}
+                            className={`p-2 rounded-lg transition-all ${
+                              previewingId === sound.id
+                                ? 'text-indigo-500'
+                                : `${textMuted} hover:text-indigo-500`
+                            }`}
+                            title="Preview"
+                          >
+                            {previewingId === sound.id ? <PauseIcon size={14} /> : <PlayIcon size={14} />}
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              <div className="mt-4 pt-3 border-t border-dashed" style={{ borderColor: isDark ? '#333' : '#ddd' }}>
                 <label className={`text-xs ${textMuted} block mb-1`}>Custom Audio URL</label>
                 <input
                   type="url"
                   placeholder="https://example.com/alarm.mp3"
                   value={editAlarm.soundUrl}
-                  onChange={(e) => setEditAlarm({ ...editAlarm, soundUrl: e.target.value, soundName: 'Custom' })}
+                  onChange={(e) => setEditAlarm({ ...editAlarm, soundUrl: e.target.value, soundName: 'Custom', soundId: '' })}
                   className={`w-full px-4 py-2.5 rounded-xl border ${border} ${isDark ? 'bg-zinc-800 text-white' : 'bg-zinc-50 text-zinc-900'} text-sm outline-none focus:ring-2 focus:ring-indigo-500`}
                 />
               </div>
