@@ -24,7 +24,8 @@ jobs:
         with:
           node-version: 22
 
-      - run: npm install
+      - name: Clean install (avoid Alpine lock file mismatch)
+        run: rm -f package-lock.json && npm install
 
       - run: npm run build
 
