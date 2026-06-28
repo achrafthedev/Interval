@@ -1,6 +1,6 @@
 import type { View, Theme } from '../types'
 import { useTheme } from './ThemeProvider'
-import { ClockIcon, AlarmIcon, TimerIcon, StopwatchIcon, SunIcon, MoonIcon, PaletteIcon, SettingsIcon, MaximizeIcon, ScreenIcon } from './Icons'
+import { ClockIcon, AlarmIcon, TimerIcon, StopwatchIcon, SunIcon, MoonIcon, PaletteIcon, SettingsIcon, MaximizeIcon, ScreenIcon, GitHubIcon, HeartIcon } from './Icons'
 import { isWakeLockSupported, requestWakeLock, releaseWakeLock, isWakeLockActive } from '../utils/wakelock'
 import { useState } from 'react'
 
@@ -41,7 +41,7 @@ function ThemeButton({ theme, setTheme }: { theme: Theme; setTheme: (t: Theme) =
 }
 
 export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Props) {
-  const { theme, setTheme, textPrimary, textSecondary, surface, border, isDark } = useTheme()
+  const { theme, setTheme, textPrimary, textSecondary, textMuted, surface, border, isDark } = useTheme()
   const [wakeLockOn, setWakeLockOn] = useState(isWakeLockActive())
 
   const toggleWakeLock = async () => {
@@ -115,6 +115,22 @@ export function Navigation({ view, setView, onSettingsOpen, onFullscreen }: Prop
             <SettingsIcon size={18} />
             <span className="hidden lg:inline">Settings</span>
           </button>
+        </div>
+
+        {/* GitHub Footer */}
+        <div className={`px-4 py-4 border-t ${border}`}>
+          <a
+            href="https://github.com/achrafthedev/Interval"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`group flex items-center gap-2 px-3 py-2 rounded-xl text-xs transition-all ${textMuted} hover:${isDark ? 'text-white' : 'text-zinc-900'}`}
+          >
+            <GitHubIcon size={16} className="opacity-50 group-hover:opacity-100 transition-opacity" />
+            <span className="hidden lg:flex items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
+              Open Source
+              <HeartIcon size={12} className="text-red-400" />
+            </span>
+          </a>
         </div>
       </nav>
 

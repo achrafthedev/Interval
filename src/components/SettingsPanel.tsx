@@ -1,5 +1,5 @@
 import { useTheme } from './ThemeProvider'
-import { XIcon, DownloadIcon, SunIcon, MoonIcon, PaletteIcon } from './Icons'
+import { XIcon, DownloadIcon, SunIcon, MoonIcon, PaletteIcon, GitHubIcon, HeartIcon, StarIcon } from './Icons'
 import type { Theme } from '../types'
 
 interface Props {
@@ -143,7 +143,23 @@ export function SettingsPanel({ show, onClose, use24Hour, setUse24Hour, showAnal
           </div>
         </div>
 
-        <p className={`text-center text-[10px] ${textMuted} mt-6`}>Interval v1.0 — Built with precision</p>
+        {/* About */}
+        <div className={`mt-6 pt-4 border-t ${border} text-center`}>
+          <a
+            href="https://github.com/achrafthedev/Interval"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border ${border} ${textSecondary} hover:text-indigo-500 hover:border-indigo-500/50 transition-all`}
+          >
+            <GitHubIcon size={18} />
+            Star on GitHub
+            <StarIcon size={14} />
+          </a>
+          <p className={`text-[10px] ${textMuted} mt-3 flex items-center justify-center gap-1`}>
+            Interval v1.0 — Built with <HeartIcon size={10} className="text-red-400" /> by
+            <a href="https://github.com/achrafthedev" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-500 transition-colors">achrafthedev</a>
+          </p>
+        </div>
       </div>
     </div>
   )

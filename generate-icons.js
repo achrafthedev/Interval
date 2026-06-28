@@ -1,29 +1,25 @@
-// Run inside the Docker container to generate PNG icons from SVG
-// Usage: node generate-icons.js
-// For now, the SVG icon serves as the primary icon.
-// PNG icons can be generated using any SVG-to-PNG tool.
-// The manifest references these files, which will be created during build.
+import { writeFileSync } from 'fs';
 
-import { readFileSync, writeFileSync } from 'fs';
+// Generate a minimal valid 1x1 PNG as a placeholder.
+// For production icons, replace these with properly rendered PNGs from the SVG.
+// The app primarily uses icon.svg which renders at any resolution.
 
-// Create minimal valid PNG files as placeholders
-// These should be replaced with proper rendered PNGs from the SVG
-function createMinimalPng(size) {
-  // Minimal valid PNG: 1x1 purple pixel, scaled conceptually to `size`
-  const png = Buffer.from([
-    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, // PNG signature
-    0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
-    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1
-    0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xde,
-    0x00, 0x00, 0x00, 0x0c, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
-    0x08, 0xd7, 0x63, 0xd8, 0xd0, 0xc0, 0x00, 0x00,
-    0x00, 0x14, 0x00, 0x01, 0x14, 0x09, 0x02, 0x5e,
-    0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, // IEND chunk
-    0xae, 0x42, 0x60, 0x82,
-  ]);
-  return png;
+function createPlaceholderPng() {
+  // Minimal valid PNG: 1x1 indigo pixel (#4f46e5)
+  return Buffer.from(
+    '89504e47' + '0d0a1a0a' + // PNG signature
+    '0000000d' + '49484452' + // IHDR chunk header
+    '00000001' + '00000001' + // 1x1
+    '08020000' + '0090775de6' + // 8-bit RGB, CRC
+    '0000000c' + '49444154' + // IDAT chunk header
+    '08d76360' + '604cf80f' + // compressed pixel data
+    '00000300' + '0159e834' + // CRC
+    '0000000049454e44ae426082', // IEND
+    'hex'
+  );
 }
 
-writeFileSync('public/icon-192.png', createMinimalPng(192));
-writeFileSync('public/icon-512.png', createMinimalPng(512));
-console.log('Placeholder PNG icons created.');
+const png = createPlaceholderPng();
+writeFileSync('public/icon-192.png', png);
+writeFileSync('public/icon-512.png', png);
+console.log('Placeholder icons written.');
